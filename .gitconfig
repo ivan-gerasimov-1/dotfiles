@@ -10,8 +10,8 @@
 [commit]
 	gpgsign = true
 [push]
-    autoSetupRemote = true
+	autoSetupRemote = true
 [includeIf "gitdir:~/"]
-    path = ~/.gitconfig-ivan
+	path = ~/.gitconfig-ivan
 [includeIf "gitdir:~/Developer/**"]
-    path = ~/.gitconfig-ivan
+	path = ~/.gitconfig-ivan
