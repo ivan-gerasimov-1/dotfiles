@@ -12,6 +12,11 @@
 !.codeium/windsurf/windsurf/workflows
 !.codeium/windsurf/windsurf/workflows/**
 
+!.codex
+!.codex/AGENTS.md
+!.codex/config.toml
+
+
 !.gitconfig
 !.gitignore
 !.gitignore_global
