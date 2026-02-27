@@ -13,6 +13,10 @@
 !.codeium/windsurf/windsurf/workflows/**
 
 !.codex
+!.codex/prompts
+!.codex/prompts/**
+!.codex/rules
+!.codex/rules/**
 !.codex/AGENTS.md
 !.codex/config.toml
 
