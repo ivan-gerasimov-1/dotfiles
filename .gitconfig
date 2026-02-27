@@ -12,6 +12,6 @@
 [push]
 	autoSetupRemote = true
 [includeIf "gitdir:~/"]
-	path = ~/.gitconfig-ivan
+	path = ~/.gitconfig_main
 [includeIf "gitdir:~/Developer/**"]
-	path = ~/.gitconfig-ivan
+	path = ~/.gitconfig_main
