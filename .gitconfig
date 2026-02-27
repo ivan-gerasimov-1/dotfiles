@@ -11,7 +11,7 @@
 	gpgsign = true
 [push]
     autoSetupRemote = true
-[includeIf "gitdir:/Users/ivan/Developer/**"]
+[includeIf "gitdir:~/Developer/**"]
     path = ~/.gitconfig-ivan
-[includeIf "gitdir:/Users/ivan/"]
+[includeIf "gitdir:~/"]
     path = ~/.gitconfig-ivan
