@@ -1,0 +1,1 @@
+/Users/ivan/.agents/AGENTS.md
