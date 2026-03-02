@@ -21,6 +21,8 @@
 !.codex/config.toml
 
 !.claude
+!.claude/skills
+!.claude/skills/**
 !.claude/CLAUDE.md
 
 
