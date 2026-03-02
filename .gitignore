@@ -20,6 +20,9 @@
 !.codex/AGENTS.md
 !.codex/config.toml
 
+!.claude
+!.claude/CLAUDE.md
+
 
 !.gitconfig
 !.gitignore
