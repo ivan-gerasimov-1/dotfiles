@@ -31,3 +31,9 @@ Rule: minimize risk and ensure reversibility before optimizing speed.
 - money/billing/financial math
 - migrations/irreversible ops
 - sync/distributed state.
+
+## Shell commands
+
+- Prefer `git -C <path>` over `cd <path> && git ...` to avoid compound-command security prompts.
+- Avoid chaining multiple commands with `;` or `|` into one Bash call. Use separate parallel tool calls instead.
+- Never use ANSI-C quoting (`$'...'`). Use plain single or double quotes.
