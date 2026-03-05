@@ -1,0 +1,40 @@
+{
+  "model": "opus",
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/ivan/.claude/statusline-command.sh"
+  },
+  "autoUpdatesChannel": "stable",
+  "minimumVersion": "2.1.66",
+  "permissions": {
+    "allow": [
+      "Bash(.claude/skills/speckit-implement/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(.specify/scripts/bash/update-agent-context.sh claude:*)",
+      "Bash(bash:*)",
+      "Bash(gh pr:*)",
+      "Bash(git -С:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git fetch:*)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(grep *)",
+      "Bash(grep:*)",
+      "Bash(gtimeout 10:*)",
+      "Bash(ls *)",
+      "Bash(ls /Users/ivan/Developer/apliteni/lessly/*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(pnpm *)",
+      "Bash(pnpm:*)",
+      "Bash(python3:*)",
+      "Bash(q:*)",
+      "Bash(timeout:*)",
+      "Bash(wc:*)"
+    ]
+  }
+}
