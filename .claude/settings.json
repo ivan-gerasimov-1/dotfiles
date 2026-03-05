@@ -21,12 +21,23 @@
       "Bash(npx:*)",
       "Bash(pnpm:*)",
       "Bash(python3:*)",
+      "Bash(cat:*)",
+      "Bash(cp:*)",
+      "Bash(curl:*)",
+      "Bash(echo:*)",
       "Bash(grep:*)",
-      "Bash(ls:*)",
-      "Bash(wc:*)",
-      "Bash(timeout:*)",
       "Bash(gtimeout:*)",
-      "Bash(q:*)"
+      "Bash(head:*)",
+      "Bash(jq:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(q:*)",
+      "Bash(tail:*)",
+      "Bash(timeout:*)",
+      "Bash(tsc:*)",
+      "Bash(wc:*)",
+      "Bash(which:*)"
     ]
   }
 }
