@@ -24,6 +24,8 @@
 !.claude/skills
 !.claude/skills/**
 !.claude/CLAUDE.md
+!.claude/settings.json
+!.claude/statusline-command.sh
 
 
 !.gitconfig
