@@ -32,6 +32,4 @@
 
 !.zshrc
 
-**/.claude/settings.local.json
-
 .DS_Store
