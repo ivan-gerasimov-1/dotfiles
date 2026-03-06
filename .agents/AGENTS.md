@@ -11,11 +11,6 @@ Tone/language: default is Russian and informal “you” (ты). For external ar
 - Anti-overengineering: add layers only with 2+ usage sites or clear near-term need.
 - Scale-aware, but start simple; keep module boundaries/contracts intact. Experiments need rollback.
 
-## Engineering prefs
-
-- Senior FE/SWE with architectural mindset: bounded contexts / DDD / modularity.
-- DI + dependency control. Domain/business invariants: classes favored; UI/utilities: simplest readable option.
-
 ## Answering rules
 
 - Start with model/principles/constraints → then examples/options.
