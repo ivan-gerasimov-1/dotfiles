@@ -3,28 +3,6 @@
 Personal development environment configuration. macOS, ZSH, Git with SSH signing,
 and AI coding agents (Claude Code, Codex, Windsurf).
 
-## What's here
-
-~
-├── .zshrc # ZSH + oh-my-zsh, fnm, brew aliases
-├── .gitconfig # Git with 1Password SSH signing, conditional includes
-├── .gitignore # Inverse allowlist for this repo ├── .gitignore_global # System-wide ignores (.DS_Store, .swp)
-│ ├── .claude/
-│ ├── CLAUDE.md # Global agent behavior & principles
-│ ├── settings.json # Permissions, allowed domains, model config
-│ ├── statusline-command.sh
-│ └── skills/ # → symlink to .agents/skills │
-├── .agents/ │ ├── AGENTS.md # Shared agent behavior guide
-│ └── skills/ # OpenSpec workflow skills (17 skills) │ ├── feature-lifecycle/
-│ ├── feature-plan/ │ ├── feature-implement/
-│ ├── feature-close/ │ ├── bugfix-lifecycle/
-│ ├── openspec-/ # explore, apply, verify, ff, archive, sync │ ├── frontend-design/
-│ └── teammate-code-reviewer/ │
-├── .codex/ │ ├── config.toml # GPT-5.4, xhigh reasoning, multi-agent
-│ ├── AGENTS.md │ └── rules/default.rules # Command permissions
-│ └── .codeium/windsurf/
-├── memories/global_rules.md └── windsurf/workflows/review.md
-
 ## Key decisions
 
 **Repo structure** — the `.gitignore` uses an inverse allowlist pattern: block
@@ -66,4 +44,3 @@ After cloning, review .gitconfig — it references local includes
 Anything sensitive or machine-specific stays out: SSH keys, shell history,
 1Password config, IDE state, node_modules, credentials. The .gitignore allowlist
 ensures nothing leaks by default.
-```
