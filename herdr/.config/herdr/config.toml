@@ -1,0 +1,169 @@
+onboarding = false
+
+[ui]
+agent_panel_scope = "current"
+prompt_new_tab_name = false
+
+[theme]
+name = "gruvbox"
+
+[experimental]
+pane_history = true
+switch_ascii_input_source_in_prefix = true
+kitty_graphics = false
+
+[keys]
+prefix = "cmd+k"
+settings = ["prefix+s", "prefix+ы"]
+
+new_workspace = "cmd+n"
+new_tab = "cmd+t"
+split_vertical = "cmd+d"
+split_horizontal = "cmd+shift+d"
+switch_tab = "cmd+1..9"
+switch_workspace = "ctrl+1..9"
+next_tab = "cmd+]"
+previous_tab = "cmd+["
+
+focus_pane_left = "cmd+alt+left"
+focus_pane_down = "cmd+alt+down"
+focus_pane_up = "cmd+alt+up"
+focus_pane_right = "cmd+alt+right"
+
+zoom = "cmd+enter"
+close_workspace = "cmd+shift+w"
+toggle_sidebar = "cmd+b"
+
+rename_tab = "cmd+r"
+rename_workspace = "cmd+shift+r"
+rename_pane = "cmd+alt+r"
+
+[[keys.command]]
+key = "cmd+ctrl+left"
+type = "shell"
+command = "herdr pane resize --current --direction left --amount 0.05"
+
+[[keys.command]]
+key = "cmd+ctrl+right"
+type = "shell"
+command = "herdr pane resize --current --direction right --amount 0.05"
+
+[[keys.command]]
+key = "cmd+ctrl+up"
+type = "shell"
+command = "herdr pane resize --current --direction up --amount 0.05"
+
+[[keys.command]]
+key = "cmd+ctrl+down"
+type = "shell"
+command = "herdr pane resize --current --direction down --amount 0.05"
+
+[[keys.command]]
+key = ["prefix+k", "prefix+л"]
+type = "shell"
+command = '''pane=$(herdr pane current | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["pane"]["pane_id"])'); herdr pane send-keys "$pane" ctrl+l'''
+
+[[keys.command]]
+key = "cmd+w"
+type = "shell"
+command = '''python3 - <<'PY2'
+import json, os, subprocess, tempfile, time
+
+CONFIRM_SECONDS = 5
+STATE = os.path.join(tempfile.gettempdir(), f'herdr-cmd-w-{os.getuid()}.json')
+
+def j(*args):
+    return json.loads(subprocess.check_output(args, text=True))['result']
+
+def notify(title, body):
+    subprocess.run([
+        'herdr', 'notification', 'show', title,
+        '--body', body,
+        '--position', 'bottom-right',
+        '--sound', 'none',
+    ], check=False)
+
+def process_info(pane_id):
+    return j('herdr', 'pane', 'process-info', '--pane', pane_id)['process_info']
+
+def pane_busy_from_info(info):
+    # Empty panes usually report the shell itself as the foreground process.
+    # Treat only non-shell foreground processes as "busy": nvim, lazygit, pi,
+    # codex, etc. The shell waiting for input is safe to reload immediately.
+    shell_pid = info.get('shell_pid')
+    for proc in info.get('foreground_processes') or []:
+        if proc.get('pid') != shell_pid:
+            return True
+    return False
+
+def pane_busy(pane_id):
+    try:
+        return pane_busy_from_info(process_info(pane_id))
+    except Exception:
+        return True
+
+def replace_pane(cur):
+    # Cleaner than typing `exec $SHELL` into the pane: create a fresh pane in
+    # the same tab, focus it, then close the old one. This drops all scrollback
+    # and avoids shell/job-control garbage like "Terminated".
+    pane_id = cur['pane_id']
+    cwd = cur.get('foreground_cwd') or cur.get('cwd') or os.path.expanduser('~')
+    subprocess.check_call([
+        'herdr', 'pane', 'split', pane_id,
+        '--direction', 'right',
+        '--cwd', cwd,
+        '--focus',
+    ])
+    subprocess.check_call(['herdr', 'pane', 'close', pane_id])
+
+def recently_warned(target):
+    try:
+        with open(STATE) as f:
+            state = json.load(f)
+    except Exception:
+        state = {}
+    return state.get('target') == target and time.time() - state.get('time', 0) <= CONFIRM_SECONDS
+
+def warn(target, title, body):
+    with open(STATE, 'w') as f:
+        json.dump({'target': target, 'time': time.time()}, f)
+    notify(title, body)
+
+def close_with_warning(target, busy, close_args, title, body):
+    if not busy or recently_warned(target):
+        subprocess.check_call(close_args)
+        return
+    warn(target, title, body)
+
+cur = j('herdr', 'pane', 'current')['pane']
+pane_id = cur['pane_id']
+tab_id = cur['tab_id']
+
+panes = j('herdr', 'pane', 'list')['panes']
+tab_panes = [p for p in panes if p.get('tab_id') == tab_id]
+
+if len(tab_panes) > 1:
+    close_with_warning(
+        'pane:' + pane_id,
+        pane_busy(pane_id),
+        ['herdr', 'pane', 'close', pane_id],
+        'Pane has a running process',
+        'Press Cmd+W again within 5s to close it.',
+    )
+else:
+    info = process_info(pane_id)
+    busy = pane_busy_from_info(info)
+    target = 'last-pane:' + pane_id
+    if busy and not recently_warned(target):
+        warn(
+            target,
+            'Last pane has a running process',
+            'Press Cmd+W again within 5s to reload it. We will not close the last pane.',
+        )
+    else:
+        replace_pane(cur)
+        notify('Not closing last pane', 'Created a fresh pane instead.')
+PY2'''
+
+[ui.toast]
+delivery = "herdr"
