@@ -1,33 +1,51 @@
+promptToReturnFromSubprocess: false
+os:
+  editPreset: nvim
+git:
+  pagers:
+    - colorArg: always
+      pager: >-
+        delta
+        --paging=never
+        --line-numbers
+        --hyperlinks
+        --minus-style="syntax #3c2228"
+        --minus-emph-style="syntax #5c2e35"
+        --plus-style="syntax #263728"
+        --plus-emph-style="syntax #3a523a"
+        --hunk-header-style="syntax #374145"
+        --file-style="bold #a7c080"
+        --line-numbers-minus-style="#e67e80"
+        --line-numbers-plus-style="#a7c080"
+        --line-numbers-zero-style="#859289"
 gui:
   showIcons: false
-
+  mouseEvents: true
+  sidePanelWidth: 0.18
+  expandFocusedSidePanel: true
+  showCommandLog: false
+  showPanelJumps: false
   theme:
     activeBorderColor:
       - "#374145"
-
     inactiveBorderColor:
       - "#374145"
-
     searchingActiveBorderColor:
       - "#dbbc7f"
-
     optionsTextColor:
       - "#859289"
-
     selectedLineBgColor:
       - "#374145"
-
-    selectedRangeBgColor:
-      - "#374145"
-
     cherryPickedCommitBgColor:
       - "#374145"
-
     cherryPickedCommitFgColor:
       - "#dbbc7f"
-
     unstagedChangesColor:
       - "#e67e80"
-
     defaultFgColor:
       - "#d3c6aa"
+customCommands:
+  - key: "O"
+    context: "localBranches"
+    command: "gh pr view --web"
+    description: "Open PR in browser"
