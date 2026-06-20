@@ -1,0 +1,27 @@
+{
+  "lastChangelogVersion": "0.75.5",
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 72000,
+    "keepRecentTokens": 10000
+  },
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "transport": "websocket",
+  "quietStartup": true,
+  "enableInstallTelemetry": false,
+  "treeFilterMode": "all",
+  "theme": "dark",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "medium",
+  "enabledModels": [
+    "openai-codex/gpt-5.5",
+    "openai-codex/gpt-5.4-mini"
+  ],
+  "hideThinkingBlock": true,
+  "showHardwareCursor": false,
+  "enableSkillCommands": true,
+  "collapseChangelog": true
+}
