@@ -1,0 +1,44 @@
+[app]
+# overall = { bg = "#272e33" }
+
+[mgr]
+cwd = { fg = "#d3c6aa", bold = true }
+border_style = { fg = "#374145" }
+find_keyword = { fg = "#e67e80", bold = true }
+find_position = { fg = "#a7c080" }
+symlink_target = { fg = "#7fbbb3" }
+show_icons = false
+
+[indicator]
+parent = { fg = "#374145", bg = "#272e33" }
+current = { fg = "#dbbc7f", bg = "#374145", bold = true }
+preview = { fg = "#374145", bg = "#272e33" }
+
+[tabs]
+active = { fg = "#dbbc7f", bg = "#272e33", bold = true }
+inactive = { fg = "#859289", bg = "#272e33" }
+
+[status]
+overall = { fg = "#d3c6aa", bg = "#272e33" }
+
+[mode]
+normal_main = { fg = "#272e33", bg = "#374145", bold = true }
+normal_alt  = { fg = "#d3c6aa", bg = "#272e33" }
+
+[filetype]
+rules = [
+  { url = "*/", fg = "#9da986" },
+  { url = "*", is = "link", fg = "#83c092" },
+  { url = "*", is = "orphan", fg = "#f85552" },
+  { mime = "image/*", fg = "#7fbbb3" },
+  { mime = "{audio,video}/*", fg = "#dbbc7f" },
+  { url = "*", fg = "#d3c6aa" },
+]
+
+[icon]
+globs = []
+dirs = []
+files = []
+exts = []
+conds = []
+
