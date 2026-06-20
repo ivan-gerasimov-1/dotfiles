@@ -1,0 +1,17 @@
+add_newline = false
+
+format = """$directory$git_branch$git_worktree$character"""
+
+[directory]
+truncation_length = 2
+truncate_to_repo = false
+style = "white"
+
+[git_branch]
+format = "[$symbol $branch ]($style)"
+symbol = ""
+style = "white"
+
+[character]
+success_symbol = "❯"
+error_symbol = "❯"
