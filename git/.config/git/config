@@ -1,0 +1,23 @@
+[core]
+	editor = code --wait --disable-extensions
+	ignorecase = false
+	autocrlf = input
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[init]
+	defaultBranch = main
+[commit]
+	gpgsign = true
+[pull]
+	ff = only
+[push]
+	autoSetupRemote = true
+[fetch]
+	prune = true
+	pruneTags = true
+[includeIf "gitdir:~/dotfiles/**"]
+	path = ./config.main
+[includeIf "gitdir:~/Developer/**"]
+	path = ./config.main
