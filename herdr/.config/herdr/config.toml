@@ -17,7 +17,6 @@ prefix = "cmd+k"
 settings = ["prefix+s", "prefix+ы"]
 
 new_workspace = "cmd+n"
-new_tab = "cmd+t"
 split_vertical = "cmd+d"
 split_horizontal = "cmd+shift+d"
 switch_tab = "cmd+1..9"
@@ -38,6 +37,10 @@ rename_tab = "cmd+r"
 rename_workspace = "cmd+shift+r"
 rename_pane = "cmd+alt+r"
 
+[[keys.command]]
+key = "cmd+t"
+type = "shell"
+command = "python3 ~/.config/herdr/scripts/open-from-current-cwd.py tab"
 [[keys.command]]
 key = "cmd+ctrl+left"
 type = "shell"
