@@ -103,7 +103,11 @@ def replace_pane(current_pane: dict[str, Any]) -> None:
     messages left by sending `exec $SHELL` into the terminal.
     """
     pane_id = current_pane["pane_id"]
-    cwd = current_pane.get("foreground_cwd") or current_pane.get("cwd") or os.path.expanduser("~")
+    cwd = (
+        current_pane.get("foreground_cwd")
+        or current_pane.get("cwd")
+        or os.path.expanduser("~")
+    )
 
     subprocess.check_call(
         (
@@ -127,10 +131,17 @@ def main() -> None:
     tab_id = current["tab_id"]
     workspace_id = current["workspace_id"]
 
-    panes = herdr("pane", "list")["panes"]
-    tab_panes = [pane for pane in panes if pane.get("tab_id") == tab_id]
+    tabs = herdr("tab", "list")["tabs"]
+    current_tab = next((tab for tab in tabs if tab.get("tab_id") == tab_id), None)
+    if current_tab is None:
+        notify("Cmd+W failed", "Could not find the current tab. Nothing was closed.")
+        return
 
-    if len(tab_panes) > 1:
+    # Prefer tab.pane_count over counting pane.list manually. In key-handler
+    # context pane.list can be scoped/stale in some Herdr builds, which made
+    # every pane look like the only pane in its tab. Fun little footgun.
+    pane_count = current_tab.get("pane_count", 1)
+    if pane_count > 1:
         run_after_warning(
             target=f"pane:{pane_id}",
             busy=pane_busy(pane_id),
@@ -140,10 +151,32 @@ def main() -> None:
         )
         return
 
-    tabs = herdr("tab", "list")["tabs"]
-    workspace_tabs = [tab for tab in tabs if tab.get("workspace_id") == workspace_id]
+    workspaces = herdr("workspace", "list")["workspaces"]
+    current_workspace = next(
+        (
+            workspace
+            for workspace in workspaces
+            if workspace.get("workspace_id") == workspace_id
+        ),
+        None,
+    )
 
-    if len(workspace_tabs) > 1:
+    # Be defensive here. Depending on Herdr/context, either workspace.list or
+    # tab.list can be narrower than expected. If both are present, use the
+    # larger count so we do not mistake a normal single-pane tab for the last
+    # tab and reset the pane instead of closing the tab.
+    workspace_tabs = [tab for tab in tabs if tab.get("workspace_id") == workspace_id]
+    listed_tab_count = len(workspace_tabs) or len(tabs)
+    workspace_tab_count = current_workspace.get("tab_count", 0) if current_workspace else 0
+    tab_count = max(workspace_tab_count, listed_tab_count, 1)
+
+    if current_workspace is None and listed_tab_count <= 1:
+        notify(
+            "Cmd+W failed",
+            "Could not confirm this is the last tab. Nothing was closed.",
+        )
+        return
+    if tab_count > 1:
         run_after_warning(
             target=f"tab:{tab_id}",
             busy=pane_busy(pane_id),
