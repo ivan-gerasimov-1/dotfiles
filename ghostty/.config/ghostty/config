@@ -1,3 +1,5 @@
+initial-command = direct:/opt/homebrew/bin/herdr
+
 auto-update = off
 notify-on-command-finish = unfocused
 quit-after-last-window-closed = true
