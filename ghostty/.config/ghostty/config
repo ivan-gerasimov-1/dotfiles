@@ -1,3 +1,19 @@
+auto-update = off
+notify-on-command-finish = unfocused
+quit-after-last-window-closed = true
+
+# background-blur = true
+# background-opacity = 0.875
+font-family = Iosevka
+font-size = 15
+fullscreen = non-native
+macos-titlebar-style = tabs
+macos-window-buttons = hidden
+macos-window-shadow = false
+theme = Everforest Dark Hard
+window-padding-x = 0
+window-padding-y = 0
+
 keybind = ctrl+1=unbind
 keybind = ctrl+2=unbind
 keybind = ctrl+3=unbind
