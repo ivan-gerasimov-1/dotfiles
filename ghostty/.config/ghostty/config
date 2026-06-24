@@ -8,7 +8,7 @@ quit-after-last-window-closed = true
 # background-blur = true
 # background-opacity = 0.875
 font-family = Iosevka
-font-size = 15
+font-size = 14
 fullscreen = non-native
 macos-titlebar-style = tabs
 macos-window-buttons = hidden
@@ -70,6 +70,7 @@ keybind = super+shift+w=unbind
 keybind = super+t=unbind
 keybind = super+w=unbind
 
+keybind = alt+backspace=text:\x1b\x7f
 keybind = ctrl+key_b=text:\x02
 keybind = super+alt+key_r=text:\x1b[114;11u
 keybind = super+key_b=text:\x1b[98;9u
