@@ -128,6 +128,12 @@ require("lazy").setup({
       "nvim-lua/plenary.nvim",
     },
     config = function()
+      require("telescope").setup({
+        defaults = {
+          disable_devicons = true,
+        },
+      })
+
       local telescope = require("telescope.builtin")
 
       vim.keymap.set("n", "<leader>ff", telescope.find_files, { desc = "Find files" })
@@ -169,6 +175,20 @@ require("lazy").setup({
         },
         filters = {
           dotfiles = false,
+        },
+        renderer = {
+          icons = {
+            show = {
+              file = false,
+              folder = false,
+              folder_arrow = true,
+              git = true,
+              modified = true,
+              hidden = true,
+              diagnostics = true,
+              bookmarks = true,
+            },
+          },
         },
       })
 
