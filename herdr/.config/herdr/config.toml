@@ -64,7 +64,7 @@ command = "herdr pane resize --current --direction down --amount 0.05"
 [[keys.command]]
 key = ["prefix+k", "prefix+л"]
 type = "shell"
-command = '''pane=$(herdr pane current | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["pane"]["pane_id"])'); herdr pane send-keys "$pane" ctrl+l'''
+command = "python3 ~/.config/herdr/scripts/clear-pane.py"
 
 [[keys.command]]
 key = "cmd+w"
