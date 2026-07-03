@@ -40,7 +40,7 @@ rename_pane = "cmd+alt+r"
 [[keys.command]]
 key = "cmd+t"
 type = "shell"
-command = "python3 scripts/open-from-current-cwd.py tab"
+command = "python3 ${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/open-from-current-cwd.py tab"
 [[keys.command]]
 key = "cmd+ctrl+left"
 type = "shell"
@@ -64,12 +64,12 @@ command = "herdr pane resize --current --direction down --amount 0.05"
 [[keys.command]]
 key = ["prefix+k", "prefix+л"]
 type = "shell"
-command = "python3 scripts/clear-pane.py"
+command = "python3 ${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/clear-pane.py"
 
 [[keys.command]]
 key = "cmd+w"
 type = "shell"
-command = "python3 scripts/cmd-w.py"
+command = "python3 ${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/cmd-w.py"
 
 [ui.toast]
 delivery = "herdr"
