@@ -9,15 +9,15 @@ git:
         --paging=never
         --line-numbers
         --hyperlinks
-        --minus-style="syntax #3c2228"
-        --minus-emph-style="syntax #5c2e35"
-        --plus-style="syntax #263728"
-        --plus-emph-style="syntax #3a523a"
-        --hunk-header-style="syntax #374145"
-        --file-style="bold #a7c080"
-        --line-numbers-minus-style="#e67e80"
-        --line-numbers-plus-style="#a7c080"
-        --line-numbers-zero-style="#859289"
+        --minus-style="syntax #3a3030"
+        --minus-emph-style="syntax #4a332d"
+        --plus-style="syntax #333532"
+        --plus-emph-style="syntax #3d4038"
+        --hunk-header-style="syntax #3a3637"
+        --file-style="bold #dedede"
+        --line-numbers-minus-style="#da5b2c"
+        --line-numbers-plus-style="#cacaca"
+        --line-numbers-zero-style="#7f7f7f"
 gui:
   showIcons: false
   mouseEvents: true
@@ -27,23 +27,23 @@ gui:
   showPanelJumps: false
   theme:
     activeBorderColor:
-      - "#374145"
+      - "#5d595b"
     inactiveBorderColor:
-      - "#374145"
+      - "#5d595b"
     searchingActiveBorderColor:
-      - "#dbbc7f"
+      - "#da5b2c"
     optionsTextColor:
-      - "#859289"
+      - "#989898"
     selectedLineBgColor:
-      - "#374145"
+      - "#3a3637"
     cherryPickedCommitBgColor:
-      - "#374145"
+      - "#3a3637"
     cherryPickedCommitFgColor:
-      - "#dbbc7f"
+      - "#cacaca"
     unstagedChangesColor:
-      - "#e67e80"
+      - "#da5b2c"
     defaultFgColor:
-      - "#d3c6aa"
+      - "#dedede"
 customCommands:
   - key: "O"
     context: "localBranches"
