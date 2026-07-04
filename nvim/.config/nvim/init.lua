@@ -60,3 +60,5 @@ require("lazy").setup({
     enabled = false,
   },
 })
+
+vim.cmd.colorscheme("owl")
