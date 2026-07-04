@@ -1,38 +1,42 @@
 [app]
-# overall = { bg = "#272e33" }
+# Keep transparent: Ghostty owns the background.
 
 [mgr]
-cwd = { fg = "#d3c6aa", bold = true }
-border_style = { fg = "#374145" }
-find_keyword = { fg = "#e67e80", bold = true }
-find_position = { fg = "#a7c080" }
-symlink_target = { fg = "#7fbbb3" }
+cwd = { fg = "#dedede", bold = true }
+border_style = { fg = "#5d595b" }
+find_keyword = { fg = "#da5b2c", bold = true }
+find_position = { fg = "#cacaca" }
+symlink_target = { fg = "#b1b1b1" }
 show_icons = false
 
 [indicator]
-parent = { fg = "#374145", bg = "#272e33" }
-current = { fg = "#dbbc7f", bg = "#374145", bold = true }
-preview = { fg = "#374145", bg = "#272e33" }
+parent = { fg = "#7f7f7f" }
+current = { fg = "#dedede", bg = "#5d595b", bold = true }
+preview = { fg = "#7f7f7f" }
 
 [tabs]
-active = { fg = "#dbbc7f", bg = "#272e33", bold = true }
-inactive = { fg = "#859289", bg = "#272e33" }
+active = { fg = "#dedede", bg = "#5d595b", bold = true }
+inactive = { fg = "#989898" }
 
 [status]
-overall = { fg = "#d3c6aa", bg = "#272e33" }
+overall = { fg = "#dedede" }
 
 [mode]
-normal_main = { fg = "#272e33", bg = "#374145", bold = true }
-normal_alt  = { fg = "#d3c6aa", bg = "#272e33" }
+normal_main = { fg = "#302c2c", bg = "#dedede", bold = true }
+normal_alt  = { fg = "#dedede", bg = "#302c2c" }
+select_main = { fg = "#302c2c", bg = "#cacaca", bold = true }
+select_alt  = { fg = "#dedede", bg = "#302c2c" }
+unset_main  = { fg = "#302c2c", bg = "#da5b2c", bold = true }
+unset_alt   = { fg = "#dedede", bg = "#302c2c" }
 
 [filetype]
 rules = [
-  { url = "*/", fg = "#9da986" },
-  { url = "*", is = "link", fg = "#83c092" },
-  { url = "*", is = "orphan", fg = "#f85552" },
-  { mime = "image/*", fg = "#7fbbb3" },
-  { mime = "{audio,video}/*", fg = "#dbbc7f" },
-  { url = "*", fg = "#d3c6aa" },
+  { url = "*/", fg = "#dedede", bold = true },
+  { url = "*", is = "link", fg = "#b1b1b1" },
+  { url = "*", is = "orphan", fg = "#da5b2c" },
+  { mime = "image/*", fg = "#cacaca" },
+  { mime = "{audio,video}/*", fg = "#989898" },
+  { url = "*", fg = "#dedede" },
 ]
 
 [icon]
@@ -41,4 +45,3 @@ dirs = []
 files = []
 exts = []
 conds = []
-
