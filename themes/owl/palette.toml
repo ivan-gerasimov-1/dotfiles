@@ -1,0 +1,40 @@
+# Canonical Owl palette for this dotfiles repo.
+# Base comes from Ghostty's built-in `owl` theme.
+# Rule: terminal owns the background; terminal apps stay transparent when possible.
+
+[colors]
+background = "#2f2b2c"
+foreground = "#dedede"
+cursor = "#dedede"
+cursor_text = "#2f2b2c"
+selection_background = "#dedede"
+selection_foreground = "#2f2b2c"
+
+black = "#302c2c"
+red = "#5a5a5a"
+green = "#989898"
+yellow = "#cacaca"
+blue = "#656565"
+magenta = "#b1b1b1"
+cyan = "#7f7f7f"
+white = "#dedede"
+bright_black = "#5d595b"
+bright_red = "#da5b2c"
+bright_green = "#989898"
+bright_yellow = "#cacaca"
+bright_blue = "#656565"
+bright_magenta = "#b1b1b1"
+bright_cyan = "#7f7f7f"
+bright_white = "#ffffff"
+
+[roles]
+bg = "#2f2b2c"
+bg_alt = "#302c2c"
+bg_soft = "#3a3637"
+bg_selected = "#5d595b"
+fg = "#dedede"
+fg_soft = "#cacaca"
+muted = "#989898"
+dim = "#7f7f7f"
+dark = "#656565"
+accent = "#da5b2c"

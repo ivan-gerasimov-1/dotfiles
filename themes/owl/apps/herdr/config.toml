@@ -1,0 +1,3 @@
+# Herdr intentionally uses Gruvbox for UI chrome contrast on top of Ghostty owl.
+[theme]
+name = "gruvbox"

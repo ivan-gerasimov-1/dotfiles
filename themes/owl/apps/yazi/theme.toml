@@ -1,0 +1,47 @@
+[app]
+# Keep transparent: Ghostty owns the background.
+
+[mgr]
+cwd = { fg = "#dedede", bold = true }
+border_style = { fg = "#5d595b" }
+find_keyword = { fg = "#da5b2c", bold = true }
+find_position = { fg = "#cacaca" }
+symlink_target = { fg = "#b1b1b1" }
+show_icons = false
+
+[indicator]
+parent = { fg = "#7f7f7f" }
+current = { fg = "#dedede", bg = "#5d595b", bold = true }
+preview = { fg = "#7f7f7f" }
+
+[tabs]
+active = { fg = "#dedede", bg = "#5d595b", bold = true }
+inactive = { fg = "#989898" }
+
+[status]
+overall = { fg = "#dedede" }
+
+[mode]
+normal_main = { fg = "#302c2c", bg = "#dedede", bold = true }
+normal_alt  = { fg = "#dedede", bg = "#302c2c" }
+select_main = { fg = "#302c2c", bg = "#cacaca", bold = true }
+select_alt  = { fg = "#dedede", bg = "#302c2c" }
+unset_main  = { fg = "#302c2c", bg = "#da5b2c", bold = true }
+unset_alt   = { fg = "#dedede", bg = "#302c2c" }
+
+[filetype]
+rules = [
+  { url = "*/", fg = "#dedede", bold = true },
+  { url = "*", is = "link", fg = "#b1b1b1" },
+  { url = "*", is = "orphan", fg = "#da5b2c" },
+  { mime = "image/*", fg = "#cacaca" },
+  { mime = "{audio,video}/*", fg = "#989898" },
+  { url = "*", fg = "#dedede" },
+]
+
+[icon]
+globs = []
+dirs = []
+files = []
+exts = []
+conds = []

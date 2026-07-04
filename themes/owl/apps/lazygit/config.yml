@@ -1,0 +1,37 @@
+git:
+  pagers:
+    - colorArg: always
+      pager: >-
+        delta
+        --paging=never
+        --line-numbers
+        --hyperlinks
+        --minus-style="syntax #3a3030"
+        --minus-emph-style="syntax #4a332d"
+        --plus-style="syntax #333532"
+        --plus-emph-style="syntax #3d4038"
+        --hunk-header-style="syntax #3a3637"
+        --file-style="bold #dedede"
+        --line-numbers-minus-style="#da5b2c"
+        --line-numbers-plus-style="#cacaca"
+        --line-numbers-zero-style="#7f7f7f"
+gui:
+  theme:
+    activeBorderColor:
+      - "#5d595b"
+    inactiveBorderColor:
+      - "#5d595b"
+    searchingActiveBorderColor:
+      - "#da5b2c"
+    optionsTextColor:
+      - "#989898"
+    selectedLineBgColor:
+      - "#3a3637"
+    cherryPickedCommitBgColor:
+      - "#3a3637"
+    cherryPickedCommitFgColor:
+      - "#cacaca"
+    unstagedChangesColor:
+      - "#da5b2c"
+    defaultFgColor:
+      - "#dedede"
