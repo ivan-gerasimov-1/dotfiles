@@ -14,8 +14,8 @@ confirm-close-surface = false
 notify-on-command-finish = unfocused
 quit-after-last-window-closed = true
 
-# background-blur = true
-# background-opacity = 0.875
+background-blur = true
+background-opacity = 0.625
 font-family = Iosevka
 font-size = 14
 fullscreen = non-native
