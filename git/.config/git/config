@@ -1,7 +1,8 @@
 [core]
-	editor = code --wait --disable-extensions
+	editor = zed --wait
 	ignorecase = false
 	autocrlf = input
+	pager = delta
 [gpg]
 	format = ssh
 [gpg "ssh"]
@@ -17,7 +18,14 @@
 [fetch]
 	prune = true
 	pruneTags = true
+[interactive]
+	diffFilter = delta --color-only
+[merge]
+	conflictStyle = zdiff3
+[delta]
+	navigate = true
 [includeIf "gitdir:~/dotfiles/**"]
 	path = ./config.main
 [includeIf "gitdir:~/Developer/**"]
 	path = ./config.main
+
