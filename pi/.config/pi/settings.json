@@ -15,13 +15,14 @@
   "theme": "dark",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
-  "defaultThinkingLevel": "low",
-  "enabledModels": [
-    "openai-codex/gpt-5.5",
-    "openai-codex/gpt-5.4-mini"
-  ],
+  "defaultThinkingLevel": "medium",
+  "enabledModels": ["openai-codex/gpt-5.5", "openai-codex/gpt-5.4-mini"],
   "hideThinkingBlock": true,
   "showHardwareCursor": false,
   "enableSkillCommands": true,
-  "collapseChangelog": true
+  "collapseChangelog": true,
+  "warnings": {
+    "anthropicExtraUsage": false
+  },
+  "doubleEscapeAction": "none"
 }
