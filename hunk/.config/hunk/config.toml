@@ -1,0 +1,15 @@
+mode = "auto"
+watch = true
+exclude_untracked = false
+line_numbers = true
+wrap_lines = false
+hunk_headers = false
+menu_bar = false
+agent_notes = true
+
+transparent_background = true
+theme = "custom"
+
+[custom_theme]
+base = "graphite"
+label = "Owl"
