@@ -1,0 +1,167 @@
+{
+  "version": 3,
+  "workspaces": [
+    {
+      "id": "w1",
+      "custom_name": "ONE",
+      "identity_cwd": "/Users/ivan/.dotfiles",
+      "public_pane_numbers": {
+        "6": 94,
+        "2": 13,
+        "3": 67,
+        "5": 24,
+        "1": 1,
+        "9": 99,
+        "4": 23
+      },
+      "next_public_pane_number": 104,
+      "public_tab_numbers": [
+        1,
+        14,
+        19
+      ],
+      "next_public_tab_number": 30,
+      "tabs": [
+        {
+          "custom_name": "HOME",
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.39999998,
+              "first": {
+                "Pane": 1
+              },
+              "second": {
+                "Split": {
+                  "direction": "Vertical",
+                  "ratio": 0.5,
+                  "first": {
+                    "Pane": 2
+                  },
+                  "second": {
+                    "Pane": 3
+                  }
+                }
+              }
+            }
+          },
+          "panes": {
+            "1": {
+              "cwd": "/Users/ivan/.dotfiles"
+            },
+            "3": {
+              "cwd": "/Users/ivan"
+            },
+            "2": {
+              "cwd": "/Users/ivan"
+            }
+          },
+          "zoomed": true,
+          "focused": 1,
+          "root_pane": 1
+        },
+        {
+          "custom_name": "MEMORE",
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.44999987,
+              "first": {
+                "Pane": 4
+              },
+              "second": {
+                "Pane": 5
+              }
+            }
+          },
+          "panes": {
+            "4": {
+              "cwd": "/Users/ivan/Developer/sandox/memory"
+            },
+            "5": {
+              "cwd": "/Users/ivan/Developer/sandox/memory"
+            }
+          },
+          "zoomed": false,
+          "focused": 5,
+          "root_pane": 4
+        },
+        {
+          "custom_name": "MAIN",
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.5,
+              "first": {
+                "Pane": 6
+              },
+              "second": {
+                "Pane": 9
+              }
+            }
+          },
+          "panes": {
+            "6": {
+              "cwd": "/Users/ivan/Developer/fru/master"
+            },
+            "9": {
+              "cwd": "/Users/ivan/Developer/fru/master"
+            }
+          },
+          "zoomed": false,
+          "focused": 9,
+          "root_pane": 6
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w2",
+      "custom_name": null,
+      "identity_cwd": "/Users/ivan/Developer/agentic-giving",
+      "public_pane_numbers": {
+        "68": 55,
+        "77": 64
+      },
+      "next_public_pane_number": 71,
+      "public_tab_numbers": [
+        1
+      ],
+      "next_public_tab_number": 9,
+      "tabs": [
+        {
+          "custom_name": null,
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.5,
+              "first": {
+                "Pane": 68
+              },
+              "second": {
+                "Pane": 77
+              }
+            }
+          },
+          "panes": {
+            "68": {
+              "cwd": "/Users/ivan/Developer/agentic-giving"
+            },
+            "77": {
+              "cwd": "/Users/ivan/Developer/agentic-giving"
+            }
+          },
+          "zoomed": false,
+          "focused": 77,
+          "root_pane": 68
+        }
+      ],
+      "active_tab": 0
+    }
+  ],
+  "active": 0,
+  "selected": 0,
+  "sidebar_width": 26,
+  "sidebar_section_split": 0.5,
+  "collapsed_space_keys": []
+}
