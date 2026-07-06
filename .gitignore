@@ -8,3 +8,9 @@
 
 **/homebrew/trust.json
 
+**/herdr/herdr-client.log
+**/herdr/herdr-server.log
+**/herdr/session-history.json
+**/herdr/release-notes.log
+**/herdr/session.json
+
