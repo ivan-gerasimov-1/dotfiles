@@ -179,6 +179,10 @@ hi("BlinkCmpLabelMatch", { fg = c.accent, bold = true })
 hi("BlinkCmpDoc", { fg = c.fg, bg = c.bg_alt })
 hi("BlinkCmpDocBorder", { fg = c.dim, bg = c.bg_alt })
 
+-- Markdown comments: dimmer than body text, but lighter than code comments
+hi("@comment.markdown", { fg = c.muted, italic = true })
+hi("@comment.markdown_inline", { fg = c.muted, italic = true })
+
 hi("RenderMarkdownH1", { fg = c.fg, bold = true })
 hi("RenderMarkdownH2", { fg = c.fg_soft, bold = true })
 hi("RenderMarkdownCode", { bg = c.bg_alt })
