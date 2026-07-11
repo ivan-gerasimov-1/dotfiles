@@ -16,16 +16,17 @@ from typing import Any
 
 CONFIRM_SECONDS = 2
 STATE_FILE = os.path.join(tempfile.gettempdir(), f"herdr-cmd-w-{os.getuid()}.json")
+HERDR = "/opt/homebrew/bin/herdr"
 
 
 def herdr(*args: str) -> dict[str, Any]:
-    return json.loads(subprocess.check_output(("herdr", *args), text=True))["result"]
+    return json.loads(subprocess.check_output((HERDR, *args), text=True))["result"]
 
 
 def notify(title: str, body: str) -> None:
     subprocess.run(
         (
-            "herdr",
+            HERDR,
             "notification",
             "show",
             title,
@@ -111,7 +112,7 @@ def replace_pane(current_pane: dict[str, Any]) -> None:
 
     subprocess.check_call(
         (
-            "herdr",
+            HERDR,
             "pane",
             "split",
             pane_id,
@@ -122,7 +123,7 @@ def replace_pane(current_pane: dict[str, Any]) -> None:
             "--focus",
         )
     )
-    subprocess.check_call(("herdr", "pane", "close", pane_id))
+    subprocess.check_call((HERDR, "pane", "close", pane_id))
 
 
 def main() -> None:
@@ -145,7 +146,7 @@ def main() -> None:
         run_after_warning(
             target=f"pane:{pane_id}",
             busy=pane_busy(pane_id),
-            command=("herdr", "pane", "close", pane_id),
+            command=(HERDR, "pane", "close", pane_id),
             title="Pane has a running process",
             action="close it",
         )
@@ -180,7 +181,7 @@ def main() -> None:
         run_after_warning(
             target=f"tab:{tab_id}",
             busy=pane_busy(pane_id),
-            command=("herdr", "tab", "close", tab_id),
+            command=(HERDR, "tab", "close", tab_id),
             title="Tab has a running process",
             action="close it",
         )

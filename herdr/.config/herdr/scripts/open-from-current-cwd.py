@@ -4,9 +4,11 @@ import subprocess
 import sys
 from typing import Any
 
+HERDR = "/opt/homebrew/bin/herdr"
+
 
 def herdr(*args: str) -> dict[str, Any]:
-    return json.loads(subprocess.check_output(("herdr", *args), text=True))["result"]
+    return json.loads(subprocess.check_output((HERDR, *args), text=True))["result"]
 
 
 def main() -> int:
@@ -22,7 +24,7 @@ def main() -> int:
     action = sys.argv[1]
     if action == "tab":
         subprocess.check_call((
-            "herdr",
+            HERDR,
             "tab",
             "create",
             "--workspace",
@@ -34,7 +36,7 @@ def main() -> int:
     else:
         direction = "right" if action == "split-right" else "down"
         subprocess.check_call((
-            "herdr",
+            HERDR,
             "pane",
             "split",
             "--current",
