@@ -1,13 +1,6 @@
 initial-command = direct:/opt/homebrew/bin/herdr
 
 theme = owl
-# theme = Matte Black
-# theme = Nord
-# theme = Desert
-# theme = Catppuccin Frappe
-# theme = Black Metal (Bathory)
-# theme = Gruvbox Dark
-# theme = Gruvbox Material Dark
 
 auto-update = off
 confirm-close-surface = false
