@@ -37,6 +37,10 @@ export PI_CODING_AGENT_SESSION_DIR="$XDG_STATE_HOME/pi/sessions"
 # Codex
 export CODEX_HOME="$XDG_STATE_HOME/codex"
 
+# GO
+export GOPATH="$XDG_DATA_HOME/go"
+path=("$GOPATH/bin" $path)
+
 # PATH
 export PATH
 
