@@ -7,6 +7,7 @@
 **/hunk/state.json
 
 **/homebrew/trust.json
+**/homebrew/trust.json.lock
 
 **/herdr/herdr-client.log
 **/herdr/herdr-server.log
