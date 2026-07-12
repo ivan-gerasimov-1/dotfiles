@@ -81,6 +81,14 @@ keybind = super+key_n=text:\x1b[110;9u
 keybind = super+key_r=text:\x1b[114;9u
 keybind = super+key_t=text:\x1b[116;9u
 keybind = super+key_w=text:\x1b[119;9u
+keybind = super+ctrl+key_h=text:\x1b[104;13u
+keybind = super+ctrl+key_j=text:\x1b[106;13u
+keybind = super+ctrl+key_k=text:\x1b[107;13u
+keybind = super+ctrl+key_l=text:\x1b[108;13u
+keybind = super+alt+key_h=text:\x1b[104;11u
+keybind = super+alt+key_j=text:\x1b[106;11u
+keybind = super+alt+key_k=text:\x1b[107;11u
+keybind = super+alt+key_l=text:\x1b[108;11u
 keybind = super+shift+key_d=text:\x1b[100;10u
 keybind = super+shift+key_r=text:\x1b[114;10u
 keybind = super+shift+key_w=text:\x1b[119;10u
