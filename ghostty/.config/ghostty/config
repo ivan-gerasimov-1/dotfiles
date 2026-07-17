@@ -71,6 +71,12 @@ keybind = super+shift+w=unbind
 keybind = super+t=unbind
 keybind = super+w=unbind
 
+# Emit navigation keys instead of readline commands so these also work in
+# Neovim's insert mode.
+keybind = super+arrow_left=text:\x1b[H
+keybind = super+arrow_right=text:\x1b[F
+keybind = alt+arrow_left=text:\x1b[1;5D
+keybind = alt+arrow_right=text:\x1b[1;5C
 keybind = alt+backspace=text:\x1b\x7f
 keybind = ctrl+key_b=text:\x02
 keybind = super+alt+key_r=text:\x1b[114;11u
