@@ -4,6 +4,9 @@ return {
   opts = {
     keymap = {
       preset = "default",
+      -- Keep arrow keys predictable while learning: completion uses C-n/C-p.
+      ["<Up>"] = false,
+      ["<Down>"] = false,
     },
     completion = {
       documentation = {
