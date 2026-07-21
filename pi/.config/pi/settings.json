@@ -14,7 +14,7 @@
   "treeFilterMode": "all",
   "theme": "dark",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
     "openai-codex/gpt-5.5",
@@ -32,3 +32,4 @@
   },
   "doubleEscapeAction": "none"
 }
+
