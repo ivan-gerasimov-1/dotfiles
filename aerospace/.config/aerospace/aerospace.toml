@@ -1,0 +1,42 @@
+config-version = 2
+start-at-login = true
+
+# Undo accidental macOS app hiding (Command-H).
+automatically-unhide-macos-hidden-apps = true
+
+# Keep both workspaces available when empty.
+persistent-workspaces = ["1", "2"]
+
+# Open new workspaces in the near-maximized accordion layout.
+default-root-container-layout = "accordion"
+default-root-container-orientation = "auto"
+
+# Do not leave a visible stack edge in accordion layout.
+accordion-padding = 0
+
+# Route new Ghostty windows to workspace 2.
+[[on-window-detected]]
+if.app-id = "com.mitchellh.ghostty"
+run = "move-node-to-workspace 2"
+
+# Route every other new window to workspace 1. Rules stop after the first match.
+[[on-window-detected]]
+if = "true"
+run = "move-node-to-workspace 1"
+
+[mode.main.binding]
+alt-1 = "workspace 1"
+alt-2 = "workspace 2"
+alt-tab = "workspace-back-and-forth"
+
+# Move the focused window and follow it to the destination workspace.
+alt-shift-1 = ["move-node-to-workspace 1", "workspace 1"]
+alt-shift-2 = ["move-node-to-workspace 2", "workspace 2"]
+
+# Toggle the focused container between tiled and accordion layouts.
+alt-slash = "layout tiles accordion"
+
+# Reset split sizes or adjust the focused window by 200 pixels.
+alt-0 = "balance-sizes"
+alt-minus = "resize smart -200"
+alt-equal = "resize smart +200"
