@@ -39,6 +39,24 @@ rules = [
   { url = "*", fg = "#dedede" },
 ]
 
+[git]
+unknown_sign = " "
+modified_sign = "M"
+added_sign = "A"
+untracked_sign = "?"
+ignored_sign = "·"
+deleted_sign = "D"
+updated_sign = "U"
+clean_sign = " "
+unknown = { fg = "#989898" }
+modified = { fg = "#da5b2c", bold = true }
+added = { fg = "#dedede", bold = true }
+untracked = { fg = "#cacaca" }
+ignored = { fg = "#5d595b" }
+deleted = { fg = "#da5b2c", bold = true }
+updated = { fg = "#cacaca" }
+clean = { fg = "#5d595b" }
+
 [icon]
 globs = []
 dirs = []

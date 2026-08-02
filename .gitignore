@@ -7,6 +7,9 @@
 
 **/hunk/state.json
 
+# Yazi packages are installed from package.toml.
+**/yazi/.config/yazi/plugins/**
+
 **/homebrew/trust.json
 **/homebrew/trust.json.lock
 
