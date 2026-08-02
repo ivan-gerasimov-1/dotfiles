@@ -51,6 +51,7 @@ alias lg="lazygit"
 
 ### nvim
 alias vi="nvim"
+alias vim="nvim"
 
 ### eza
 alias ls="eza -a --color=never --oneline --show-symlinks"
