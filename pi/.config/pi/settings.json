@@ -1,12 +1,13 @@
 {
-  "lastChangelogVersion": "0.80.5",
+  "lastChangelogVersion": "0.83.0",
   "compaction": {
     "enabled": true,
     "reserveTokens": 72000,
     "keepRecentTokens": 10000
   },
   "terminal": {
-    "showTerminalProgress": true
+    "showTerminalProgress": true,
+    "imageWidthCells": 120
   },
   "transport": "websocket",
   "quietStartup": true,
@@ -17,11 +18,8 @@
   "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
-    "openai-codex/gpt-5.5",
-    "openai-codex/gpt-5.6-terra",
-    "openai-codex/gpt-5.6-luna",
     "openai-codex/gpt-5.6-sol",
-    "openai-codex/gpt-5.4-mini"
+    "openai-codex/gpt-5.6-luna"
   ],
   "hideThinkingBlock": true,
   "showHardwareCursor": false,
@@ -30,6 +28,7 @@
   "warnings": {
     "anthropicExtraUsage": false
   },
-  "doubleEscapeAction": "none"
+  "doubleEscapeAction": "none",
+  "defaultProjectTrust": "always"
 }
 
