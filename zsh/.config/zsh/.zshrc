@@ -37,7 +37,7 @@ alias brew:cleanup="brew autoremove && brew cleanup --prune=all"
 alias brew:why="brew uses --installed --recursive"
 
 ### PI
-alias pi='pi --tools read,bash,edit,write,grep,find,ls --offline'
+alias pi='pi --tools read,bash,edit,write,grep,find,ls,question --offline'
 alias pir='pi --tools read,grep,find,ls --offline'
 
 ### Lazygit
