@@ -8,8 +8,8 @@ return {
       theme = {
         normal = {
           a = { fg = "#302c2c", bg = "#dedede", gui = "bold" },
-          b = { fg = "#dedede", bg = "#3a3637" },
-          c = { fg = "#989898", bg = "#302c2c" },
+          b = { fg = "#989898", bg = "#302c2c" },
+          c = { fg = "#cacaca", bg = "#302c2c" },
         },
         insert = { a = { fg = "#302c2c", bg = "#d7a65f", gui = "bold" } },
         visual = { a = { fg = "#302c2c", bg = "#b99ab7", gui = "bold" } },
@@ -22,17 +22,25 @@ return {
         },
       },
       icons_enabled = false,
-      component_separators = { left = "·", right = "·" },
+      component_separators = "",
       section_separators = "",
       globalstatus = true,
     },
     sections = {
-      lualine_a = { "mode" },
+      lualine_a = {
+        {
+          "mode",
+          fmt = function(mode)
+            return mode:sub(1, 1)
+          end,
+        },
+      },
       lualine_b = { "branch" },
       lualine_c = {
         {
           "filename",
           path = 1,
+          shorting_target = 40,
           file_status = true,
           symbols = {
             modified = " M",
@@ -42,9 +50,19 @@ return {
           },
         },
       },
-      lualine_x = { "diagnostics", "encoding", "filetype" },
-      lualine_y = { "progress" },
-      lualine_z = { "location" },
+      lualine_x = {
+        "diagnostics",
+        {
+          "encoding",
+          cond = function()
+            local encoding = vim.bo.fileencoding
+            return encoding ~= "" and encoding:lower() ~= "utf-8"
+          end,
+        },
+        "filetype",
+      },
+      lualine_y = {},
+      lualine_z = {},
     },
   },
 }
