@@ -9,6 +9,7 @@ vim.opt.relativenumber = true
 vim.opt.termguicolors = true
 vim.opt.fillchars = { eob = " " }
 vim.opt.shortmess:append("I")
+vim.opt.showmode = false
 
 vim.filetype.add({
   extension = {
