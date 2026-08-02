@@ -11,6 +11,10 @@ return {
       "lua",
       "markdown",
       "bash",
+      "go",
+      "gomod",
+      "gosum",
+      "gowork",
     },
   },
 }
