@@ -20,6 +20,9 @@ setopt HIST_VERIFY
 # fzf
 source <(fzf --zsh)
 
+# zoxide
+eval "$(zoxide init zsh)"
+
 # Starship
 eval "$(starship init zsh)"
 
