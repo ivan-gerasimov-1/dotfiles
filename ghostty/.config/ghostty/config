@@ -9,7 +9,7 @@ quit-after-last-window-closed = true
 
 background-blur = true
 background-opacity = 0.9625
-font-family = Iosevka
+font-family = Iosevka Term
 font-size = 14
 fullscreen = non-native
 macos-titlebar-style = tabs
