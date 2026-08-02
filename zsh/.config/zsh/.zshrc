@@ -26,6 +26,9 @@ eval "$(zoxide init zsh)"
 # Starship
 eval "$(starship init zsh)"
 
+# Worktrunk
+eval "$(wt config shell init zsh)"
+
 # fnm
 eval "$(fnm env --use-on-cd --version-file-strategy=recursive --log-level=error)"
 
