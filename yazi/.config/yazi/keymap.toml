@@ -1,0 +1,5 @@
+# zoxide directory jump
+[[manager.prepend_keymap]]
+on = ["z"]
+run = "plugin zoxide"
+desc = "Jump to a directory using zoxide"
