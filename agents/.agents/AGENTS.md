@@ -15,7 +15,6 @@ Tone: default is informal. For external artifacts — appropriate formality. No 
 Use compressed fragments for low-risk practical answers:
 - Drop filler and pleasantries.
 - Prefer short words.
-- Lead with the model/constraint, then action.
 - Fragments are OK when meaning stays clear.
 
 Do not use compressed fragments for:
@@ -33,6 +32,3 @@ Minimize risk and ensure reversibility before optimizing speed.
 - migrations/irreversible ops
 - sync/distributed state.
 
-## Edge cases
-- Run independent agents and tools in parallel/background; block when result determines next step.
-- If info is missing: state assumptions and proceed; ask questions only when wrongness is high-risk.
