@@ -3,13 +3,14 @@ show_hidden = true
 ratio = [0, 1, 3]
 
 # Git status fetchers for git.yazi (Yazi >= 26.1.22).
+# Limit status checks to the repositories I actively work in.
 [[plugin.prepend_fetchers]]
-url = "*"
+url = "~/dotfiles/**"
 run = "git"
 group = "git"
 
 [[plugin.prepend_fetchers]]
-url = "*/"
+url = "~/Developer/**"
 run = "git"
 group = "git"
 
