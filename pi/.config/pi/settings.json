@@ -15,8 +15,8 @@
   "treeFilterMode": "default",
   "theme": "dark",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-luna",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "low",
   "enabledModels": [
     "openai-codex/gpt-5.6-sol",
     "openai-codex/gpt-5.6-luna"
