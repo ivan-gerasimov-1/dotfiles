@@ -14,6 +14,11 @@ default-root-container-orientation = "auto"
 # Do not leave a visible stack edge in accordion layout.
 accordion-padding = 0
 
+# Keep 1Password windows, including its popup, out of the tiling layout.
+[[on-window-detected]]
+if.app-id = "com.1password.1password"
+run = "layout floating"
+
 # Route new Ghostty windows to workspace 2.
 [[on-window-detected]]
 if.app-id = "com.mitchellh.ghostty"
