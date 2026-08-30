@@ -14,8 +14,10 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 # less
 export LESSHISTFILE="$XDG_STATE_HOME/less/.lesshst"
 
-# Homebrew
-export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+# Homebrew (macOS only)
+if [[ $OSTYPE == darwin* ]]; then
+  export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+fi
 
 # Starship
 export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
@@ -24,7 +26,11 @@ export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 
 # pnpm
-export PNPM_HOME="$HOME/Library/pnpm"
+if [[ $OSTYPE == darwin* ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+else
+  export PNPM_HOME="$XDG_DATA_HOME/pnpm"
+fi
 path=("$PNPM_HOME/bin" $path)
 
 # tmux
