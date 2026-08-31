@@ -18,4 +18,5 @@
 **/herdr/session-history.json
 **/herdr/release-notes.json
 **/herdr/session.json
+**/herdr/.plugins.lock
 
