@@ -19,6 +19,7 @@ rules/prose.md checks:
   ellipsis         Ellipsis outside tables (P4)
   long-sentences   Sentences over 25 words (P5)
   file-lines       file:line references in prose and inline code (P11)
+  links            Relative links to files or directories that do not exist (P11)
 
 rules/slop.md checks:
   contrast         «X, а не Y» and «не X, а Y», across line breaks (B1)
@@ -148,6 +149,16 @@ case $check in
   file-lines)
     # Reads inline code too: references usually sit in backticks.
     prose_raw | grep -E '[A-Za-z0-9_]\.[a-z]{2,4}:[0-9]+' || true ;;
+
+  links)
+    # Anchors are not checked: only the file or directory part of the target.
+    prose | DIR=$(dirname "$file") perl -CSD -Mutf8 -ne '
+      ($l, $t) = /^(\d+): (.*)/s or next;
+      while ($t =~ /\]\(([^)\s]+)\)/g) {
+        my $u = $1; next if $u =~ /^(?:[a-z][a-z0-9+.-]*:|#)/i;
+        (my $path = $u) =~ s/#.*//;
+        print "$l: $u\n" unless -e ($path =~ m{^/} ? $path : "$ENV{DIR}/$path");
+      }' ;;
 
   contrast)
     # Reads the whole file so a construction broken by a line break is still found.
