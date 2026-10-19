@@ -17,7 +17,7 @@ rules:
 
 # Fragment check (English)
 
-Check of an English fragment of up to five sentences, from an editor selection
+Check of an English fragment of up to ten sentences, from an editor selection
 or from chat. One agent does everything, without subagents and without the
 `checks.sh` checks. The sections [«Вызов»](../SKILL.md#вызов),
 [«Что вычитывать»](../SKILL.md#что-вычитывать) and
