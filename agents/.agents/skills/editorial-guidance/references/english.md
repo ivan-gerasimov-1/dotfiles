@@ -1,66 +1,28 @@
-# Fragment check (English)
+# English reading of the rules
 
-Check of an English fragment of up to ten sentences, from an editor selection
-or from chat. One agent does everything, without subagents and without the
-`checks.sh` checks. The sections [«Вызов»](../SKILL.md#вызов),
-[«Что вычитывать»](../SKILL.md#что-вычитывать) and
-[«Где правила пересекаются»](../SKILL.md#где-правила-пересекаются) of SKILL.md
-apply here too.
+Rule IDs are the same as in [rules/](rules/), one file per rule. Those files
+give Russian examples, so this file gives the English reading of each rule that
+has `en` in its `languages`, and the English marker lists. When the two
+disagree on an example, this file wins for English text.
 
-Rule IDs are the same as in [rules/](rules/), one file per rule, indexed by
-[rules/slop.md](rules/slop.md) and [rules/prose.md](rules/prose.md). Those files give Russian examples, so this
-file gives the English reading of each rule and the English marker lists.
-When the two disagree on an example, this file wins for English text.
+Skip the common glossary, since it covers Russian. Read the project glossary
+if the project wires one in (see [SKILL.md](../SKILL.md)), for product and code
+terms only.
 
-`scripts/rules.sh en --fragment` takes the fragment list from
-[quick-check.md](quick-check.md) and keeps the rules that have `en` in their
-`languages`. To check a rule on English, add `en` to its `languages` and a row
-to the table [«Applies»](#applies).
-
-## Order
-
-1. `scripts/rules.sh en --fragment <selectors>` prints the rules to check.
-   They are the selected rules from the table [«Applies»](#applies). If the
-   script names rules that a fragment doesn't check, say so.
-2. The [report template](report.md) is already printed by `scripts/context.sh en`.
-   Read the rules for their intent, then the English lists below. Skip the
-   common glossary, since it covers Russian. Read the project glossary if the
-   project wires one in (see [SKILL.md](../SKILL.md)), for product and code
-   terms only.
-3. Check the fragment in pass order: slop first, then words, grammar and
-   readability.
-4. Without `--fix`, edit nothing. Return the findings in the
-   [report format](report.md). No slop score.
-5. With `--fix`, edit a fragment from a file in place with Edit, and return a
-   fragment from chat corrected. Under the text, list the edits with rule IDs.
-
-## Applies
-
-| Rule | What is checked in the fragment |
+| Rule | What is checked in English |
 |---|---|
-| A001 | a marker from [the A001 list](#a001-markers) is visible in one phrase |
-| A002 | only if the fragment has a conclusion or a why |
-| B001 | every contrast pivot, no density count (see [B001 forms](#b001-forms)) |
+| A001 | a marker from [the A001 list](#a001-markers) |
+| A002 | a conclusion or a why without a checkable claim |
+| B001 | contrast pivots (see [B001 forms](#b001-forms)) |
 | B004 | a Russian calque or false friend (see [the B004 list](#b004-russian-calques)) |
 | P001 and project glossary | code names in backticks, product terms as the glossary spells them |
 | P004 | articles, question word order, it's/its, tense and verb forms |
 | P005 | sentence structure, corporate-speak (see [the P005 list](#p005-corporate-speak)) |
-| P006 | meta-phrases and padding inside the fragment |
+| P006 | meta-phrases and padding |
+| P010, P015 | a table cell or a list item |
 | P012 | em-dash, semicolon and colon as connectors inside a sentence |
 | P013 | verb instead of a nominalisation |
 | P014 | metaphors (see [the P014 list](#p014-metaphors)) |
-| P010, P015 | only for a table cell or a list item |
-
-## Not applied
-
-| Rule | Why it doesn't fit a fragment or English |
-|---|---|
-| A003, A004, P007 | need neighbouring sections or the whole list |
-| A005 | needs the whole document to see where a detail comes from |
-| B002, B003, B005, B006 | counted by density or across the whole document |
-| P009 | consistency is checked across the whole document |
-| P011 | links and navigation are checked across the whole document |
-| P002, P003, P008, common glossary | anglicisms and hybrids in Russian text |
 
 ## English lists
 

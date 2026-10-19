@@ -11,7 +11,7 @@ usage() {
   cat >&2 <<'EOF'
 Usage: checks.sh <check> file.md
 
-rules/prose.md checks:
+prose preset checks:
   hybrids          Latin glued to Cyrillic (P002, P003)
   latin            Latin words in prose with counts and lines (P001, P002, P009)
   variants         Concepts written in more than one variant (P009)
@@ -21,7 +21,7 @@ rules/prose.md checks:
   file-lines       file:line references in prose and inline code (P011)
   links            Relative links to files or directories that do not exist (P011)
 
-rules/slop.md checks:
+slop preset checks:
   contrast         «X, а не Y» and «не X, а Y», across line breaks (B001)
   words            Prose word count for per-1000-words thresholds
 
