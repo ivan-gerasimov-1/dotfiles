@@ -45,6 +45,7 @@ type Run = {
   /** Rule IDs from the FOUND line, or null when the reply has no FOUND line. */
   found: Set<string> | null;
   cost: number;
+  turns: number;
   reply: string;
 };
 
@@ -135,8 +136,8 @@ function loadFixtures(rules: string[]): Fixture[] {
 function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Promise<Run> {
   const args = [
     "-p", `/editorial-guidance full ${fixture.body}`,
-    "--allowedTools", "Read Glob Grep Skill",
-    "--disallowedTools", "Edit Write Bash",
+    "--allowedTools", "Read Glob Grep Skill Bash(*/scripts/rules.sh *) Bash(*/scripts/context.sh *)",
+    "--disallowedTools", "Edit Write",
     "--append-system-prompt", SYSTEM_PROMPT,
     "--output-format", "json",
   ];
@@ -159,22 +160,23 @@ function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Pr
 function parseReply(stdout: string, stderr: string): Run {
   const data = parseJson(stdout);
   if (!isRecord(data)) {
-    return { found: null, cost: 0, reply: stdout + stderr };
+    return { found: null, cost: 0, turns: 0, reply: stdout + stderr };
   }
 
   const reply = typeof data.result === "string" ? data.result : "";
   const cost = typeof data.total_cost_usd === "number" ? data.total_cost_usd : 0;
+  const turns = typeof data.num_turns === "number" ? data.num_turns : 0;
 
   const foundLines = [...reply.matchAll(/^FOUND:\s*(.*)$/gm)];
   const lastLine = foundLines.at(-1)?.[1];
 
   if (lastLine === undefined) {
-    return { found: null, cost, reply };
+    return { found: null, cost, turns, reply };
   }
 
   const ids = lastLine.match(/\b[A-Z]\d{3}\b/g) ?? [];
 
-  return { found: new Set(ids), cost, reply };
+  return { found: new Set(ids), cost, turns, reply };
 }
 
 function parseJson(text: string): unknown {
@@ -352,9 +354,13 @@ async function main() {
   printRules(statsByRule(rows));
 
   const cost = runs.reduce((sum, run) => sum + run.cost, 0);
+  const turns = runs.reduce((sum, run) => sum + run.turns, 0);
+
+  const perCall = (total: number) => (total / runs.length).toFixed(2);
 
   console.log();
-  console.log(`cost $${cost.toFixed(2)}, replies in ${outDir}`);
+  console.log(`cost $${cost.toFixed(2)} ($${perCall(cost)} per call), ${perCall(turns)} turns per call`);
+  console.log(`replies in ${outDir}`);
 }
 
 await main();

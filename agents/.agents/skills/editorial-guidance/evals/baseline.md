@@ -19,6 +19,20 @@ without `--fix`. Every rule scores the same as above, with no flaky fixtures.
 The run cost $16.54, about $0.26 per call. The extra cost likely comes from
 reading quick-check.md and report.md.
 
+## After the fragment scripts
+
+Called as `/editorial-guidance full <fragment>`. The agent now makes two script
+calls instead of reading files one by one: `context.sh` prints the procedure,
+the report template and the glossary, and `rules.sh --fragment` prints only the
+rules a fragment check applies, without frontmatter. Every rule scores the same
+as above, with no flaky fixtures. The run cost $14.13, about $0.22 per call,
+at 3.1 turns per call instead of about 18.
+
+Cost follows the amount of rule text in context, not the number of turns.
+One script call that printed all 26 rules came to about $0.38 per call: its
+output crossed Claude Code's inline limit, was saved to a file and read back
+in an extra turn.
+
 ## History
 
 The first full run gave B001 3/6 silent and P006 6/9 recall with 2 flaky fixtures.
