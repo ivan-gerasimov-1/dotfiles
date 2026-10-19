@@ -1,8 +1,9 @@
-# Quick check (English)
+# Fragment check (English)
 
-Mode for an English fragment of up to five sentences, from an editor selection
+Check of an English fragment of up to five sentences, from an editor selection
 or from chat. One agent does everything, without subagents and without the
-script. The sections [«Что вычитывать»](../SKILL.md#что-вычитывать) and
+script. The sections [«Вызов»](../SKILL.md#вызов),
+[«Что вычитывать»](../SKILL.md#что-вычитывать) and
 [«Где правила пересекаются»](../SKILL.md#где-правила-пересекаются) of SKILL.md
 apply here too.
 
@@ -13,15 +14,19 @@ When the two disagree on an example, this file wins for English text.
 
 ## Order
 
-1. Read the rules from the table [«Applies»](#applies) for their intent, then
-   the English lists below. Skip the common glossary, since it covers Russian. Read
-   the project glossary if the project wires one in (see [SKILL.md](../SKILL.md)),
-   for product and code terms only.
-2. Check the fragment in pass order: slop first, then words, grammar and
+1. Take the selected rules from the table [«Applies»](#applies). Without
+   selectors, that is the `recommended` rules in the table. If a selected rule is in
+   [«Not applied»](#not-applied), say it can't be checked on a fragment.
+2. Read those rules for their intent, then the English lists below. Skip the
+   common glossary, since it covers Russian. Read the project glossary if the
+   project wires one in (see [SKILL.md](../SKILL.md)), for product and code
+   terms only.
+3. Check the fragment in pass order: slop first, then words, grammar and
    readability.
-3. If the fragment comes from a file, edit it in place with Edit. If it comes
-   in chat, return the corrected text.
-4. Under the text, list the edits with rule IDs. No slop score.
+4. Without `--fix`, edit nothing. Return the findings in the
+   [report format](../SKILL.md#отчёт). No slop score.
+5. With `--fix`, edit a fragment from a file in place with Edit, and return a
+   fragment from chat corrected. Under the text, list the edits with rule IDs.
 
 ## Applies
 

@@ -1,5 +1,6 @@
 /**
- * Runs editorial-guidance quick mode over fixtures and scores each rule.
+ * Runs an editorial-guidance report on each fixture and scores each rule.
+ * The report checks both rule sets without `--fix`, so nothing is edited.
  *
  * Usage: node evals/eval.ts [RULE ...] [--runs N] [--jobs N] [--model NAME]
  *
@@ -71,8 +72,8 @@ const FIXTURES = join(HERE, "fixtures");
 const RESULTS = join(HERE, "results");
 
 const SYSTEM_PROMPT =
-  "Eval run. Do not edit files. End the reply with one line: " +
-  "FOUND: <comma-separated rule IDs of your edits, or none>";
+  "Eval run. End the reply with one line: " +
+  "FOUND: <comma-separated rule IDs of your findings, or none>";
 
 function parseFixture(rule: string, file: string): Fixture {
   const path = join(FIXTURES, rule, file);
@@ -133,7 +134,7 @@ function loadFixtures(rules: string[]): Fixture[] {
  */
 function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Promise<Run> {
   const args = [
-    "-p", `/editorial-guidance quick ${fixture.body}`,
+    "-p", `/editorial-guidance slop prose ${fixture.body}`,
     "--allowedTools", "Read Glob Grep Skill",
     "--disallowedTools", "Edit Write Bash",
     "--append-system-prompt", SYSTEM_PROMPT,
