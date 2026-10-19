@@ -135,15 +135,23 @@ language_rules() {
   done
 }
 
-# Bodies of the selected presets and the presets they extend, each once.
+# Bodies of the selected presets and the presets they extend, each once. A preset with
+# passes gets the list of its passes from the frontmatter, under its "## Проходы"
+# heading or at the end, so the text never repeats the frontmatter by hand.
 print_notes() {
-  local selector name
+  local selector name file passes
   for selector in "$@"; do
     if is_preset "$selector"; then
       preset_chain "$selector"
     fi
   done | awk '!seen[$0]++' | while read -r name; do
-    body "$(preset_file "$name")"
+    file=$(preset_file "$name")
+    passes=$(preset_passes "$file" | awk -F '\t' '{ gsub(/ /, ", ", $3); print $1 ". " $2 ": " $3 }')
+    body "$file" | PASSES=$passes awk '
+      BEGIN { passes = ENVIRON["PASSES"] }
+      /^## Проходы$/ && passes != "" { print; print ""; print passes; printed = 1; next }
+      { print }
+      END { if (!printed && passes != "") { print ""; print "## Проходы"; print ""; print passes } }'
     echo
   done
 }
