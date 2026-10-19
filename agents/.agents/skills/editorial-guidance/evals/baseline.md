@@ -12,6 +12,13 @@ Command: `node evals/eval.ts --runs 3 --jobs 6`.
 
 A full run of 21 fixtures costs about $14, about $0.22 per call.
 
+## After the `--fix` interface
+
+Same fixtures, now called as `/editorial-guidance slop prose <fragment>`
+without `--fix`. Every rule scores the same as above, with no flaky fixtures.
+The run cost $16.54, about $0.26 per call. The extra cost likely comes from
+reading quick-check.md and report.md.
+
 ## History
 
 The first full run gave B001 3/6 silent and P006 6/9 recall with 2 flaky fixtures.
