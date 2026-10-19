@@ -1,0 +1,359 @@
+/**
+ * Runs editorial-guidance quick mode over fixtures and scores each rule.
+ *
+ * Usage: node evals/eval.ts [RULE ...] [--runs N] [--jobs N] [--model NAME]
+ *
+ * A fixture lives in fixtures/<RULE>/<name>.md. Its frontmatter says whether
+ * the rule must fire (`expect: flag`) or stay silent (`expect: pass`).
+ * Only the fixture's own rule is scored. Other rules it fires are listed as extra.
+ * Raw replies go to results/<timestamp>/.
+ *
+ * Needs Node 23.6+ to run TypeScript without a build step.
+ */
+
+import { execFile } from "node:child_process";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
+
+type Expect = "flag" | "pass";
+
+type Fixture = {
+  rule: string;
+  name: string;
+  expect: Expect;
+  note: string;
+  body: string;
+};
+
+type Job = {
+  fixture: Fixture;
+  attempt: number;
+};
+
+type Run = {
+  /** Rule IDs from the FOUND line, or null when the reply has no FOUND line. */
+  found: Set<string> | null;
+  cost: number;
+  reply: string;
+};
+
+type Row = {
+  fixture: Fixture;
+  ok: number;
+  total: number;
+  broken: number;
+  extra: string[];
+};
+
+type Tally = {
+  ok: number;
+  total: number;
+};
+
+type RuleStats = {
+  flag: Tally;
+  pass: Tally;
+  flaky: number;
+};
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const FIXTURES = join(HERE, "fixtures");
+const RESULTS = join(HERE, "results");
+
+const SYSTEM_PROMPT =
+  "Eval run. Do not edit files. End the reply with one line: " +
+  "FOUND: <comma-separated rule IDs of your edits, or none>";
+
+function parseFixture(rule: string, file: string): Fixture {
+  const path = join(FIXTURES, rule, file);
+  const text = readFileSync(path, "utf8");
+
+  const match = text.match(/^---\n([\s\S]*?)\n---\n\n?([\s\S]*)$/);
+  if (!match) {
+    throw new Error(`${path}: no frontmatter`);
+  }
+
+  const [, frontmatter = "", body = ""] = match;
+  const meta = parseFrontmatter(frontmatter);
+
+  const expect = meta.get("expect");
+  if (expect !== "flag" && expect !== "pass") {
+    throw new Error(`${path}: expect must be flag or pass`);
+  }
+
+  return {
+    rule,
+    name: file.replace(/\.md$/, ""),
+    expect,
+    note: meta.get("note") ?? "",
+    body: body.trim(),
+  };
+}
+
+/** Reads flat `key: value` lines, which is all a fixture needs. */
+function parseFrontmatter(text: string): Map<string, string> {
+  const meta = new Map<string, string>();
+
+  for (const line of text.split("\n")) {
+    const colon = line.indexOf(": ");
+    if (colon > 0) {
+      meta.set(line.slice(0, colon), line.slice(colon + 2));
+    }
+  }
+
+  return meta;
+}
+
+function loadFixtures(rules: string[]): Fixture[] {
+  const selected = readdirSync(FIXTURES)
+    .filter((rule) => rules.length === 0 || rules.includes(rule))
+    .sort();
+
+  return selected.flatMap((rule) =>
+    readdirSync(join(FIXTURES, rule))
+      .filter((file) => file.endsWith(".md"))
+      .sort()
+      .map((file) => parseFixture(rule, file)),
+  );
+}
+
+/**
+ * Runs the skill once on a fixture with read-only tools.
+ * Stdin is closed right away, otherwise claude waits for it before it starts.
+ */
+function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Promise<Run> {
+  const args = [
+    "-p", `/editorial-guidance quick ${fixture.body}`,
+    "--allowedTools", "Read Glob Grep Skill",
+    "--disallowedTools", "Edit Write Bash",
+    "--append-system-prompt", SYSTEM_PROMPT,
+    "--output-format", "json",
+  ];
+
+  if (model) {
+    args.push("--model", model);
+  }
+
+  return new Promise((resolve) => {
+    const options = { cwd, maxBuffer: 16 * 1024 * 1024 };
+
+    const child = execFile("claude", args, options, (_error, stdout, stderr) => {
+      resolve(parseReply(stdout, stderr));
+    });
+
+    child.stdin?.end();
+  });
+}
+
+function parseReply(stdout: string, stderr: string): Run {
+  const data = parseJson(stdout);
+  if (!isRecord(data)) {
+    return { found: null, cost: 0, reply: stdout + stderr };
+  }
+
+  const reply = typeof data.result === "string" ? data.result : "";
+  const cost = typeof data.total_cost_usd === "number" ? data.total_cost_usd : 0;
+
+  const foundLines = [...reply.matchAll(/^FOUND:\s*(.*)$/gm)];
+  const lastLine = foundLines.at(-1)?.[1];
+
+  if (lastLine === undefined) {
+    return { found: null, cost, reply };
+  }
+
+  const ids = lastLine.match(/\b[ABP]\d{1,2}\b/g) ?? [];
+
+  return { found: new Set(ids), cost, reply };
+}
+
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Runs `fn` over `items`, at most `size` at a time, keeping the input order. */
+async function pool<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results = new Map<number, R>();
+  let next = 0;
+
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      const item = items[index];
+
+      if (item !== undefined) {
+        results.set(index, await fn(item));
+      }
+    }
+  };
+
+  const workers = Array.from({ length: Math.min(size, items.length) }, worker);
+  await Promise.all(workers);
+
+  return [...results.entries()].sort(([a], [b]) => a - b).map(([, result]) => result);
+}
+
+/** Runs every job in an empty working directory, so no project instructions leak into the run. */
+async function runAll(jobs: Job[], parallel: number, model: string | undefined): Promise<Run[]> {
+  const cwd = mkdtempSync(join(tmpdir(), "editorial-eval-"));
+
+  try {
+    return await pool(jobs, parallel, ({ fixture }) => runClaude(fixture, model, cwd));
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+}
+
+function scoreFixture(fixture: Fixture, runs: Run[]): Row {
+  const shouldFire = fixture.expect === "flag";
+
+  const ok = runs.filter((run) => {
+    const fired = run.found?.has(fixture.rule) ?? false;
+    return fired === shouldFire;
+  }).length;
+
+  const broken = runs.filter((run) => run.found === null).length;
+
+  const allFound = new Set(runs.flatMap((run) => [...(run.found ?? [])]));
+  const extra = [...allFound].filter((id) => id !== fixture.rule).sort();
+
+  return { fixture, ok, total: runs.length, broken, extra };
+}
+
+function statsByRule(rows: Row[]): Map<string, RuleStats> {
+  const stats = new Map<string, RuleStats>();
+
+  for (const row of rows) {
+    const { rule, expect } = row.fixture;
+
+    const entry = stats.get(rule) ?? {
+      flag: { ok: 0, total: 0 },
+      pass: { ok: 0, total: 0 },
+      flaky: 0,
+    };
+
+    entry[expect].ok += row.ok;
+    entry[expect].total += row.total;
+
+    if (row.ok > 0 && row.ok < row.total) {
+      entry.flaky++;
+    }
+
+    stats.set(rule, entry);
+  }
+
+  return stats;
+}
+
+function printFixtures(rows: Row[]) {
+  console.log(`${"fixture".padEnd(32)} ${"expect".padEnd(6)} ${"ok".padStart(5)}  extra`);
+
+  for (const row of rows) {
+    const key = `${row.fixture.rule}/${row.fixture.name}`;
+    const score = `${String(row.ok).padStart(2)}/${String(row.total).padEnd(2)}`;
+
+    let tail = row.extra.join(", ");
+    if (row.broken > 0) {
+      tail += `  [${row.broken} without FOUND]`;
+    }
+
+    console.log(`${key.padEnd(32)} ${row.fixture.expect.padEnd(6)} ${score}  ${tail}`);
+  }
+}
+
+function printRules(stats: Map<string, RuleStats>) {
+  const rate = ({ ok, total }: Tally) => (total > 0 ? `${ok}/${total}` : "-");
+
+  console.log();
+  console.log(`${"rule".padEnd(6)} ${"recall".padStart(8)} ${"silent".padStart(8)} ${"flaky".padStart(6)}`);
+
+  const sorted = [...stats].sort(([a], [b]) => a.localeCompare(b));
+
+  for (const [rule, entry] of sorted) {
+    const recall = rate(entry.flag).padStart(8);
+    const silent = rate(entry.pass).padStart(8);
+    const flaky = String(entry.flaky).padStart(6);
+
+    console.log(`${rule.padEnd(6)} ${recall} ${silent} ${flaky}`);
+  }
+}
+
+/** UTC time as YYYYMMDD-HHMMSS, so result folders sort by when they ran. */
+function timestamp(date: Date): string {
+  const two = (n: number) => String(n).padStart(2, "0");
+
+  const day = `${date.getUTCFullYear()}${two(date.getUTCMonth() + 1)}${two(date.getUTCDate())}`;
+  const time = `${two(date.getUTCHours())}${two(date.getUTCMinutes())}${two(date.getUTCSeconds())}`;
+
+  return `${day}-${time}`;
+}
+
+async function main() {
+  const { values, positionals } = parseArgs({
+    allowPositionals: true,
+    options: {
+      runs: { type: "string", default: "3" },
+      jobs: { type: "string", default: "4" },
+      model: { type: "string" },
+    },
+  });
+
+  const runsPerFixture = Number(values.runs);
+  const parallel = Number(values.jobs);
+
+  const fixtures = loadFixtures(positionals);
+  if (fixtures.length === 0) {
+    throw new Error("no fixtures");
+  }
+
+  const outDir = join(RESULTS, timestamp(new Date()));
+  mkdirSync(outDir, { recursive: true });
+
+  const jobs: Job[] = fixtures.flatMap((fixture) =>
+    Array.from({ length: runsPerFixture }, (_, attempt) => ({ fixture, attempt })),
+  );
+
+  const runs = await runAll(jobs, parallel, values.model);
+  const runsByFixture = new Map<Fixture, Run[]>();
+
+  jobs.forEach(({ fixture, attempt }, index) => {
+    const run = runs[index];
+    if (run === undefined) {
+      return;
+    }
+
+    const file = `${fixture.rule}-${fixture.name}-${attempt + 1}.md`;
+    writeFileSync(join(outDir, file), run.reply);
+
+    runsByFixture.set(fixture, [...(runsByFixture.get(fixture) ?? []), run]);
+  });
+
+  const rows = fixtures.map((fixture) => scoreFixture(fixture, runsByFixture.get(fixture) ?? []));
+
+  printFixtures(rows);
+  printRules(statsByRule(rows));
+
+  const cost = runs.reduce((sum, run) => sum + run.cost, 0);
+
+  console.log();
+  console.log(`cost $${cost.toFixed(2)}, replies in ${outDir}`);
+}
+
+await main();
