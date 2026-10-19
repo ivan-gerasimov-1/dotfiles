@@ -1,3 +1,5 @@
+**/agents/.agents/skills/synced/**
+
 **/pi/auth.json
 **/pi/trust.json
 **/pi/bin/**
@@ -19,4 +21,6 @@
 **/herdr/release-notes.json
 **/herdr/session.json
 **/herdr/.plugins.lock
+**/herdr/.config/herdr/herdr.sock.agent
+**/herdr/.config/herdr/session-snapshots/**
 
