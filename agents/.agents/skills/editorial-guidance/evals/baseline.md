@@ -1,46 +1,78 @@
-# Eval baseline
+# Базовые результаты eval
 
-Quick mode, 3 runs per fixture, default model of Claude Code 2.1.303, 2026-10-19.
-Command: `node evals/eval.ts --runs 3 --jobs 6`.
+Режим фрагмента, 3 прогона на фикстуру, модель Claude Code 2.1.303 по умолчанию, 2026-10-19.
+Команда `node evals/eval.ts --runs 3 --jobs 6`.
 
-| Rule | Recall | Silent on pass | Flaky fixtures |
+| Правило | Находит | Молчит на `pass` | Нестабильные фикстуры |
 |---|---|---|---|
+| A001 | 6/6 | 3/3 | 0 |
+| A002 | 15/15 | 9/9 | 0 |
 | B001 | 9/9 | 6/6 | 0 |
-| P005 | 9/9 | 6/6 | 0 |
+| B004 | 12/12 | 9/9 | 0 |
+| P002 | 12/12 | 9/9 | 0 |
+| P003 | 9/9 | 6/6 | 0 |
+| P005 | 12/12 | 6/6 | 0 |
 | P006 | 9/9 | 6/6 | 0 |
+| P008 | 3/3 | - | 0 |
 | P012 | 12/12 | 6/6 | 0 |
+| P014 | 3/3 | - | 0 |
 
-A full run of 21 fixtures costs about $14, about $0.22 per call.
+Строки собраны из нескольких прогонов одного дня. Одного прогона по всем
+54 фикстурам не было, он занял бы 162 вызова, около $36 при $0.22 за вызов.
+Строка A001 взята из прогона после правки A001, описанной ниже.
 
-## After the `--fix` interface
+## Пограничные фикстуры и пересечения
 
-Same fixtures, called as `/editorial-guidance slop prose <fragment>`
-without `--fix`. Every rule scores the same as above, with no flaky fixtures.
-The run cost $16.54, about $0.26 per call. The extra cost likely comes from
-reading quick-check.md and report.md.
+У каждого правила есть фикстура `flag` не из его собственных примеров
+(P002 «straightforward», P003 «зафейлился», B004 «адресует»). Пограничные пары
+проверяют, где правило заканчивается. «Ретрай» помечается, а «таймаут» нет.
+«В конце дня» помечается, а «играет роль» нет. Размытая причина помечается,
+а причина с числом нет.
 
-## After the fragment scripts
+Фикстуры пересечений перечисляют в `not:` правила, которые должны молчать.
+Так находка обязана уйти владельцу. Проверены пары A001 и P006, A001 и A002
+в обе стороны, P005 и B005, P008 против B004 и P002, P014 и B004. Во всех
+прогонах находка ушла владельцу.
 
-Called as `/editorial-guidance full <fragment>`. The agent now makes two script
-calls instead of reading files one by one: `context.sh` prints the procedure,
-the report template and the glossary, and `rules.sh --fragment` prints only the
-rules a fragment check applies, without frontmatter. Every rule scores the same
-as above, with no flaky fixtures. The run cost $14.13, about $0.22 per call,
-at 3.1 turns per call instead of about 18.
+Единственный промах дало A001 на «играет роль», в 2 прогонах из 3. Модель
+приняла оборот за форму «играет ключевую роль». Теперь A001 говорит, что форма
+сохраняет все слова фразы, и это проверяет `A001/pass-plays-role`. После правки
+правило молчит в 3 прогонах из 3.
 
-Cost follows the amount of rule text in context, not the number of turns.
-One script call that printed all 26 rules came to about $0.38 per call: its
-output crossed Claude Code's inline limit, was saved to a file and read back
-in an extra turn.
+Все правила по-прежнему на 100%. Большая часть лишних находок на фикстурах `pass`
+указывала на настоящие ошибки в тексте фикстуры, чаще всего на две части
+предложения, соединённые запятой без союза (P004).
 
-## History
+## После интерфейса `--fix`
 
-The first full run gave B001 3/6 silent and P006 6/9 recall with 2 flaky fixtures.
-Fixes before the numbers above:
+Те же фикстуры, вызов `/editorial-guidance slop prose <фрагмент>` без `--fix`.
+Все правила дают те же числа, что выше, нестабильных фикстур нет. Прогон стоил
+$16.54, около $0.26 за вызов. Лишняя стоимость, скорее всего, ушла на чтение
+quick-check.md и report.md.
 
-- `B001/pass-essential` was replaced by `B001/pass-concession`. Its contrast was
-  redundant, and the model was right to cut it.
-- A001 got a closed marker list. Similar filler not on it goes to P006, so
-  `P006/flag-attention` stopped being labelled A001.
-- P006 got announcements of what follows («Далее рассмотрим…»), so
-  `P006/flag-intro` stopped passing as navigation.
+## После скриптов для фрагмента
+
+Вызов `/editorial-guidance full <фрагмент>`. Агент теперь делает два вызова
+скриптов вместо чтения файлов по одному. `context.sh` печатает порядок проверки,
+шаблон отчёта и глоссарий, а `rules.sh --fragment` печатает без frontmatter только
+те правила, которые применяются к фрагменту. Все правила дают те же числа, что
+выше, нестабильных фикстур нет. Прогон стоил $14.13, около $0.22 за вызов,
+при 3,1 хода на вызов вместо примерно 18.
+
+Стоимость зависит от объёма текста правил в контексте. Число ходов на неё почти
+не влияет.
+Один вызов скрипта, который напечатал все 26 правил, стоил около $0.38 за вызов.
+Его вывод превысил предел Claude Code для вывода в ответе, поэтому сохранился
+в файл и читался обратно отдельным ходом.
+
+## История
+
+Первый полный прогон дал B001 3/6 на `pass` и P006 6/9 на `flag`, с двумя
+нестабильными фикстурами. До чисел выше были такие правки.
+
+- `B001/pass-essential` заменили на `B001/pass-concession`. Противопоставление
+  в старой фикстуре было лишним, и модель правильно его убирала.
+- A001 получило закрытый список маркеров. Похожая вода не из списка идёт по P006,
+  поэтому `P006/flag-attention` перестала получать метку A001.
+- P006 получило анонсы следующего текста («Далее рассмотрим…»), поэтому
+  `P006/flag-intro` перестала проходить как навигация.

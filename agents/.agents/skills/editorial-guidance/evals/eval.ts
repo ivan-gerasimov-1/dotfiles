@@ -2,11 +2,14 @@
  * Runs an editorial-guidance report on each fixture and scores each rule.
  * The report uses the `full` preset without `--fix`, so nothing is edited.
  *
- * Usage: node evals/eval.ts [RULE ...] [--runs N] [--jobs N] [--model NAME]
+ * Usage: node evals/eval.ts [RULE | RULE/NAME ...] [--runs N] [--jobs N] [--model NAME]
  *
  * A fixture lives in fixtures/<RULE>/<name>.md. Its frontmatter says whether
  * the rule must fire (`expect: flag`) or stay silent (`expect: pass`).
- * Only the fixture's own rule is scored. Other rules it fires are listed as extra.
+ * An optional `not: P006, A002` lists rules that must stay silent too, which
+ * checks that an overlapping finding goes to its owner.
+ * Only these rules are scored. Other rules a fixture fires are listed as extra,
+ * and a fired `not` rule is marked with `!`.
  * Raw replies go to results/<timestamp>/.
  *
  * Needs Node 23.6+ to run TypeScript without a build step.
@@ -32,6 +35,8 @@ type Fixture = {
   rule: string;
   name: string;
   expect: Expect;
+  /** Rules that must not fire on this fixture. */
+  not: string[];
   note: string;
   body: string;
 };
@@ -93,10 +98,21 @@ function parseFixture(rule: string, file: string): Fixture {
     throw new Error(`${path}: expect must be flag or pass`);
   }
 
+  const not = (meta.get("not") ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id !== "");
+
+  const badId = not.find((id) => !/^[A-Z]\d{3}$/.test(id));
+  if (badId !== undefined) {
+    throw new Error(`${path}: not has a bad rule ID ${badId}`);
+  }
+
   return {
     rule,
     name: file.replace(/\.md$/, ""),
     expect,
+    not,
     note: meta.get("note") ?? "",
     body: body.trim(),
   };
@@ -116,16 +132,23 @@ function parseFrontmatter(text: string): Map<string, string> {
   return meta;
 }
 
-function loadFixtures(rules: string[]): Fixture[] {
-  const selected = readdirSync(FIXTURES)
-    .filter((rule) => rules.length === 0 || rules.includes(rule))
-    .sort();
+/** Selects by rule folder (`P012`) or by one fixture (`P012/flag-dash`). No selectors means all. */
+function loadFixtures(selectors: string[]): Fixture[] {
+  const fixtures = readdirSync(FIXTURES)
+    .sort()
+    .flatMap((rule) =>
+      readdirSync(join(FIXTURES, rule))
+        .filter((file) => file.endsWith(".md"))
+        .sort()
+        .map((file) => parseFixture(rule, file)),
+    );
 
-  return selected.flatMap((rule) =>
-    readdirSync(join(FIXTURES, rule))
-      .filter((file) => file.endsWith(".md"))
-      .sort()
-      .map((file) => parseFixture(rule, file)),
+  if (selectors.length === 0) {
+    return fixtures;
+  }
+
+  return fixtures.filter(
+    ({ rule, name }) => selectors.includes(rule) || selectors.includes(`${rule}/${name}`),
   );
 }
 
@@ -229,13 +252,18 @@ function scoreFixture(fixture: Fixture, runs: Run[]): Row {
 
   const ok = runs.filter((run) => {
     const fired = run.found?.has(fixture.rule) ?? false;
-    return fired === shouldFire;
+    const misfiled = fixture.not.some((id) => run.found?.has(id) ?? false);
+
+    return fired === shouldFire && !misfiled;
   }).length;
 
   const broken = runs.filter((run) => run.found === null).length;
 
   const allFound = new Set(runs.flatMap((run) => [...(run.found ?? [])]));
-  const extra = [...allFound].filter((id) => id !== fixture.rule).sort();
+  const extra = [...allFound]
+    .filter((id) => id !== fixture.rule)
+    .sort()
+    .map((id) => (fixture.not.includes(id) ? `${id}!` : id));
 
   return { fixture, ok, total: runs.length, broken, extra };
 }
