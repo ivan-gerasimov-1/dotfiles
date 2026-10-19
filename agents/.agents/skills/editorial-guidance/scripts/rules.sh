@@ -240,7 +240,7 @@ check() {
 
     [ "$(fm_value "$file" id)" = "$id" ] || { echo "$id: id does not match the file name"; status=1; }
 
-    # Rules stay independent: how they relate lives in checking.md and the presets.
+    # Rules stay independent: how they relate lives in overlaps.md and the presets.
     others=$(body "$file" | grep -oE '[A-Z]{2}[0-9]{3}' | grep -vx "$id" | sort -u || true)
     [ -z "$others" ] || { echo "$id: mentions other rules $(echo $others)"; status=1; }
 

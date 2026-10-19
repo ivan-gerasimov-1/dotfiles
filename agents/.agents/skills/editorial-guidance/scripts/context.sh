@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prints what a check needs besides presets and rules, so an agent reads it in one call:
-# the flow, how to check, the report template, the edit rules with --fix and then,
+# the flow, the rule overlaps, the report template, the edit rules with --fix and then,
 # for the single flow on Russian text, the common glossary,
 # for the parallel flow, the subagent prompt.
 # Usage: context.sh <ru|en> <single|parallel> [--fix]
@@ -37,7 +37,7 @@ case $flow in single | parallel) ;; *) usage ;; esac
 case $fix in "" | --fix) ;; *) usage ;; esac
 
 body "$refs/flows/$flow.md"
-body "$refs/checking.md"
+body "$refs/overlaps.md"
 body "$refs/report.md"
 [ -z "$fix" ] || body "$refs/fix.md"
 

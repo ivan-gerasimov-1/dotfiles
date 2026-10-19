@@ -24,8 +24,8 @@
 - [categories.md](references/categories.md) перечисляет категории правил, то есть
   виды дефектов. Категория описательная, скрипты по ней правила не выбирают.
 - [flows/](references/flows/) отвечает на вопрос «как проверять», по файлу на флоу.
-- [checking.md](references/checking.md) задаёт, что не проверяется и где правила
-  пересекаются.
+- [overlaps.md](references/overlaps.md) задаёт, где правила пересекаются, то есть
+  какому правилу принадлежит находка.
 - [fix.md](references/fix.md) задаёт, как править с `--fix`.
 - [report.md](references/report.md) содержит общий шаблон отчёта.
 - [subagent-prompt.md](references/subagent-prompt.md) содержит задание сабагенту
@@ -40,7 +40,7 @@
   этого языка, он пишет отдельной строкой. `--notes` выводит только тексты
   пресетов, `--passes` выводит проходы, `--ids` выводит номера правил.
 - [scripts/context.sh](scripts/context.sh) выводит всё остальное для проверки:
-  флоу, [checking.md](references/checking.md), шаблон отчёта, с `--fix` ещё
+  флоу, [overlaps.md](references/overlaps.md), шаблон отчёта, с `--fix` ещё
   [fix.md](references/fix.md). Для single он добавляет глоссарий или английское
   прочтение правил, для parallel задание сабагенту.
 - [scripts/checks.sh](scripts/checks.sh) запускает механические проверки
