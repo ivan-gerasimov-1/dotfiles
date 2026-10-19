@@ -5,12 +5,13 @@
 #        rules.sh <ru|en> --passes [<selector>...]   the passes that hold selected rules, one per line
 #        rules.sh <ru|en> --ids [<selector>...]   only the rule IDs
 #        rules.sh --check   check that presets and rule files agree
-# A selector is a preset name (references/presets/<name>.md) or a rule ID such as P012.
+# A selector is a preset name (references/presets/<name>.md) or a rule ID such as GR003.
 # No selectors means the recommended preset.
 #
 # Preset frontmatter: `rules: [..]` lists rules, `extends: [..]` adds other presets,
-# `passes` splits a base preset into passes. A rule names its base preset in `set`
-# and its languages in `languages: [ru, en]`.
+# `passes` splits the preset's rules into passes. Every rule sits in exactly one pass
+# of one preset. A rule lists its languages in `languages: [ru, en]` and names its
+# category, one of references/categories.md.
 # Exit code 2 means bad usage or an unknown selector.
 set -euo pipefail
 export LC_ALL=C
@@ -18,6 +19,7 @@ export LC_ALL=C
 root=$(cd "$(dirname "$0")/.." && pwd)
 rules_dir=$root/references/rules
 presets_dir=$root/references/presets
+categories_file=$root/references/categories.md
 
 usage() {
   cat >&2 <<'EOF'
@@ -27,7 +29,7 @@ Usage: rules.sh <ru|en> [<selector>...]
        rules.sh <ru|en> --ids [<selector>...]
        rules.sh --check
 
-A selector is a preset name (recommended, prose, slop, fragment, full) or a rule ID such as P012.
+A selector is a preset name (recommended, prose, slop, fragment, full) or a rule ID such as GR003.
 EOF
   exit 2
 }
@@ -80,7 +82,7 @@ preset_file() {
 }
 
 is_rule() {
-  [[ $1 =~ ^[A-Z][0-9]{3}$ ]] && [ -f "$rules_dir/$1.md" ]
+  [[ $1 =~ ^[A-Z]{2}[0-9]{3}$ ]] && [ -f "$rules_dir/$1.md" ]
 }
 
 is_preset() {
@@ -119,7 +121,7 @@ expand() {
 }
 
 all_rules() {
-  find "$rules_dir" -name '[A-Z][0-9][0-9][0-9].md' -exec basename {} .md \; | sort
+  find "$rules_dir" -name '[A-Z][A-Z][0-9][0-9][0-9].md' -exec basename {} .md \; | sort
 }
 
 # Rule IDs whose `languages` list the language.
@@ -153,23 +155,30 @@ print_rules() {
   done
 }
 
-# Passes that hold kept rules, as "<preset> <number> <title>: <IDs>". Base presets go
-# in the order their rules first appear in the selectors, so `full` runs slop first.
+# Every rule placed in a pass, as "<rule ID> <preset>", one per line.
+pass_owners() {
+  local file
+  for file in "$presets_dir"/*.md; do
+    preset_passes "$file" | cut -f3 | tr ' ' '\n' | grep . | sed "s/\$/ $(basename "$file" .md)/" || true
+  done
+}
+
+# Passes that hold kept rules, as "<preset> <number> <title>: <IDs>". Presets go in
+# the order their rules first appear in the selectors, so `full` runs slop first.
 print_passes() {
-  local kept=$1 id base number title ids
+  local kept=$1 owner number title ids
   shift
-  expand "$@" | while read -r id; do
-    fm_value "$rules_dir/$id.md" set
-  done | awk '!seen[$0]++' | while read -r base; do
-    preset_passes "$(preset_file "$base")" | while IFS=$'\t' read -r number title ids; do
+  expand "$@" | awk 'NR == FNR { owner[$1] = $2; next } $1 in owner { print owner[$1] }' \
+    <(pass_owners) - | awk '!seen[$0]++' | while read -r owner; do
+    preset_passes "$(preset_file "$owner")" | while IFS=$'\t' read -r number title ids; do
       ids=$(comm -12 <(tr ' ' '\n' <<< "$ids" | sort) <(echo "$kept") | tr '\n' ' ')
-      [ -z "$ids" ] || echo "$base $number $title: ${ids% }"
+      [ -z "$ids" ] || echo "$owner $number $title: ${ids% }"
     done
   done
 }
 
 check() {
-  local status=0 file name parent id langs lang base count missing
+  local status=0 file name parent id langs lang category count missing
 
   for file in "$presets_dir"/*.md; do
     name=$(basename "$file" .md)
@@ -198,21 +207,16 @@ check() {
       esac
     done
 
-    base=$(fm_value "$file" set)
-    if ! is_preset "$base"; then
-      echo "$id: set names no preset ($base)"; status=1
-      continue
-    fi
-    count=$(preset_passes "$(preset_file "$base")" | cut -f3 | tr ' ' '\n' | grep -cx "$id" || true)
-    [ "$count" = 1 ] || { echo "$id: in $count passes of $base, must be in one"; status=1; }
-  done
+    [ "$(fm_value "$file" id)" = "$id" ] || { echo "$id: id does not match the file name"; status=1; }
 
-  for file in "$presets_dir"/*.md; do
-    name=$(basename "$file" .md)
-    for id in $(preset_passes "$file" | cut -f3); do
-      [ ! -f "$rules_dir/$id.md" ] || [ "$(fm_value "$rules_dir/$id.md" set)" = "$name" ] ||
-        { echo "$name: pass holds $id, whose set is another preset"; status=1; }
-    done
+    category=$(fm_value "$file" category)
+    fm_list "$categories_file" categories | grep -qx "$category" ||
+      { echo "$id: category ${category:-is missing} is not in categories.md"; status=1; }
+    [ "${id:0:2}" = "$(tr '[:lower:]' '[:upper:]' <<< "${category:0:2}")" ] ||
+      { echo "$id: prefix does not match category $category"; status=1; }
+
+    count=$(pass_owners | awk -v id="$id" '$1 == id' | wc -l | tr -d ' ')
+    [ "$count" = 1 ] || { echo "$id: in $count passes, must be in one"; status=1; }
   done
 
   missing=$(comm -23 <(all_rules) <(preset_rules full | sort -u))
@@ -253,7 +257,7 @@ done
 kept=$(comm -12 <(expand "$@" | sort -u) <(language_rules "$lang"))
 
 # Only IDs asked for by name are worth a note. A preset always has rules the language filter drops.
-asked=$(printf '%s\n' "$@" | grep -E '^[A-Z][0-9]{3}$' | sort -u || true)
+asked=$(printf '%s\n' "$@" | grep -E '^[A-Z]{2}[0-9]{3}$' | sort -u || true)
 skipped=$(comm -23 <(echo "$asked") <(echo "$kept") | grep . || true)
 
 case $mode in

@@ -11,22 +11,22 @@ terms only.
 
 | Rule | What is checked in English |
 |---|---|
-| A001 | a marker from [the A001 list](#a001-markers) |
-| A002 | a conclusion or a why without a checkable claim |
-| B001 | contrast pivots (see [B001 forms](#b001-forms)) |
-| B004 | a Russian calque or false friend (see [the B004 list](#b004-russian-calques)) |
-| P001 and project glossary | code names in backticks, product terms as the glossary spells them |
-| P004 | articles, question word order, it's/its, tense and verb forms |
-| P005 | sentence structure, corporate-speak (see [the P005 list](#p005-corporate-speak)) |
-| P006 | meta-phrases and padding |
-| P010, P015 | a table cell or a list item |
-| P012 | em-dash, semicolon and colon as connectors inside a sentence |
-| P013 | verb instead of a nominalisation |
-| P014 | metaphors (see [the P014 list](#p014-metaphors)) |
+| PA001 | a marker from [the PA001 list](#pa001-markers) |
+| SU001 | a conclusion or a why without a checkable claim |
+| CA001 | contrast pivots (see [CA001 forms](#ca001-forms)) |
+| WO001 | a Russian calque or false friend (see [the WO001 list](#wo001-russian-calques)) |
+| TE001 and project glossary | code names in backticks, product terms as the glossary spells them |
+| GR001 | articles, question word order, it's/its, tense and verb forms |
+| ST001 | sentence structure, corporate-speak (see [the ST001 list](#st001-corporate-speak)) |
+| PA003 | meta-phrases and padding |
+| ST002, ST004 | a table cell or a list item |
+| GR003 | em-dash, semicolon and colon as connectors inside a sentence |
+| WO003 | verb instead of a nominalisation |
+| WO004 | metaphors (see [the WO004 list](#wo004-metaphors)) |
 
 ## English lists
 
-### A001 markers
+### PA001 markers
 
 Each occurrence is a finding. Match case-insensitively.
 
@@ -40,7 +40,7 @@ Each occurrence is a finding. Match case-insensitively.
 - Empty intensifiers: "significantly improves", "greatly enhances",
   "highly scalable" with no number or mechanism.
 
-### B001 forms
+### CA001 forms
 
 - "not X, but Y", "X, not Y";
 - "isn't just X, it's Y", "not only X, but also Y" used as a pivot;
@@ -48,7 +48,7 @@ Each occurrence is a finding. Match case-insensitively.
 
 Rewrite as a direct statement. Keep the contrast when it is the claim itself.
 
-### B004 Russian calques
+### WO001 Russian calques
 
 - False friends: "actual" (актуальный) → "current", "up to date";
   "realize" (реализовать) → "implement"; "functional" as a noun (функционал)
@@ -59,9 +59,9 @@ Rewrite as a direct statement. Keep the contrast when it is the claim itself.
   "discuss about" → "discuss"; "make a meeting" → "hold a meeting";
   "annulate" → "void", "cancel"; "overthere" → "there".
 - Calqued grammar: "worth to do" → "worth doing" goes here. The rest of
-  grammar goes to P004.
+  grammar goes to GR001.
 
-### P004 grammar
+### GR001 grammar
 
 - Articles: missing or wrong a/an/the ("an Donor Portal", "in a first place").
   Product names usually take no article ("in Jira", not "in the Jira").
@@ -70,7 +70,7 @@ Rewrite as a direct statement. Keep the contrast when it is the claim itself.
 - Tense agreement and verb forms: "I thought there is" → "I thought there was";
   "should be move" → "should be moved".
 
-### P005 corporate-speak
+### ST001 corporate-speak
 
 Replace with the plain form or drop:
 
@@ -82,21 +82,21 @@ Replace with the plain form or drop:
 
 A sentence over 25 words with three or more clauses splits into two or three.
 
-### P012 connectors
+### GR003 connectors
 
 The em-dash is the strongest English LLM marker. Inside a prose sentence,
-replace it with a full stop, a comma or a conjunction. The P012 exceptions hold:
+replace it with a full stop, a comma or a conjunction. The GR003 exceptions hold:
 a term definition ("Snapshot — a copy of state at write time"), labels and
 metadata, run-in list headings, headings, arrow notation.
 
-### P013 verbs
+### WO003 verbs
 
 - "perform validation of X" → "validate X";
 - "make a decision" → "decide";
 - "provides the ability to" → "lets", "can";
 - "is responsible for writing" → "writes".
 
-### P014 metaphors
+### WO004 metaphors
 
 "umbrella document", "north star", "landscape", "deep dive",
 "single pane of glass" → say it directly: "overview", "goal", "the options",

@@ -12,17 +12,17 @@ usage() {
 Usage: checks.sh <check> file.md
 
 prose preset checks:
-  hybrids          Latin glued to Cyrillic (P002, P003)
-  latin            Latin words in prose with counts and lines (P001, P002, P009)
-  variants         Concepts written in more than one variant (P009)
-  connectors       Dash and semicolon inside prose and prose table cells (P012)
-  ellipsis         Ellipsis outside tables (P004)
-  long-sentences   Sentences over 25 words (P005)
-  file-lines       file:line references in prose and inline code (P011)
-  links            Relative links to files or directories that do not exist (P011)
+  hybrids          Latin glued to Cyrillic (TE002, TE003)
+  latin            Latin words in prose with counts and lines (TE001, TE002, TE004)
+  variants         Concepts written in more than one variant (TE004)
+  connectors       Dash and semicolon inside prose and prose table cells (GR003)
+  ellipsis         Ellipsis outside tables (GR001)
+  long-sentences   Sentences over 25 words (ST001)
+  file-lines       file:line references in prose and inline code (ST003)
+  links            Relative links to files or directories that do not exist (ST003)
 
 slop preset checks:
-  contrast         «X, а не Y» and «не X, а Y», across line breaks (B001)
+  contrast         «X, а не Y» and «не X, а Y», across line breaks (CA001)
   words            Prose word count for per-1000-words thresholds
 
 Helper:
@@ -89,7 +89,7 @@ case $check in
 
   connectors)
     # Every dash and semicolon in prose, with a few words of context.
-    # Skipped by design (P012): headings, «A vs B — …» items, a bold list-item label and the dash
+    # Skipped by design (GR003): headings, «A vs B — …» items, a bold list-item label and the dash
     # after it, a semicolon ending a list item, table separators, table cells under 6 words.
     prose | perl -CSD -Mutf8 -ne '
       ($l, $t) = /^(\d+): (.*)/s or next; chomp $t;
