@@ -7,9 +7,9 @@
  *
  * A fixture lives in fixtures/<RULE>/<name>.md. Its frontmatter says whether
  * the rule must fire (`expect: flag`) or stay silent (`expect: pass`).
- * An optional `not: P006, A002` lists rules that must stay silent too, which
+ * An optional `not: PA003, SU001` lists rules that must stay silent too, which
  * checks that an overlapping finding goes to its owner.
- * An optional `selectors: fragment B005` replaces the default `fragment` preset,
+ * An optional `selectors: fragment WO002` replaces the default `fragment` preset,
  * for a fixture whose competing rule is not in that preset.
  * Only these rules are scored. Other rules a fixture fires are listed as extra,
  * and a fired `not` rule is marked with `!`.
@@ -110,7 +110,7 @@ function parseFixture(rule: string, file: string): Fixture {
     .map((id) => id.trim())
     .filter((id) => id !== "");
 
-  const badId = not.find((id) => !/^[A-Z]\d{3}$/.test(id));
+  const badId = not.find((id) => !/^[A-Z]{2}\d{3}$/.test(id));
   if (badId !== undefined) {
     throw new Error(`${path}: not has a bad rule ID ${badId}`);
   }
@@ -118,7 +118,7 @@ function parseFixture(rule: string, file: string): Fixture {
   const listed = (meta.get("selectors") ?? "").split(/\s+/).filter((word) => word !== "");
   const selectors = listed.length > 0 ? listed : DEFAULT_SELECTORS;
 
-  const badSelector = selectors.find((word) => !/^([A-Z]\d{3}|[a-z]+)$/.test(word));
+  const badSelector = selectors.find((word) => !/^([A-Z]{2}\d{3}|[a-z]+)$/.test(word));
   if (badSelector !== undefined) {
     throw new Error(`${path}: selectors has a bad preset or rule ID ${badSelector}`);
   }
@@ -148,7 +148,7 @@ function parseFrontmatter(text: string): Map<string, string> {
   return meta;
 }
 
-/** Selects by rule folder (`P012`) or by one fixture (`P012/flag-dash`). No selectors means all. */
+/** Selects by rule folder (`GR003`) or by one fixture (`GR003/flag-dash`). No selectors means all. */
 function loadFixtures(selectors: string[]): Fixture[] {
   const fixtures = readdirSync(FIXTURES)
     .sort()
@@ -213,7 +213,7 @@ function parseReply(stdout: string, stderr: string): Run {
     return { found: null, cost, turns, reply };
   }
 
-  const ids = lastLine.match(/\b[A-Z]\d{3}\b/g) ?? [];
+  const ids = lastLine.match(/\b[A-Z]{2}\d{3}\b/g) ?? [];
 
   return { found: new Set(ids), cost, turns, reply };
 }

@@ -1,7 +1,7 @@
 ---
 expect: flag
-selectors: fragment B005
-not: B005
-note: канцелярит при выбранном prose идёт по P005, а не B005
+selectors: fragment WO002
+not: WO002
+note: канцелярит при выбранном prose идёт по ST001, а не WO002
 ---
 В рамках данной задачи на данном этапе выполняется проверка суммы платежа.
