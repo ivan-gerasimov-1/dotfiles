@@ -1,6 +1,6 @@
 /**
  * Runs an editorial-guidance report on each fixture and scores each rule.
- * The report checks both rule sets without `--fix`, so nothing is edited.
+ * The report uses the `full` preset without `--fix`, so nothing is edited.
  *
  * Usage: node evals/eval.ts [RULE ...] [--runs N] [--jobs N] [--model NAME]
  *
@@ -134,7 +134,7 @@ function loadFixtures(rules: string[]): Fixture[] {
  */
 function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Promise<Run> {
   const args = [
-    "-p", `/editorial-guidance slop prose ${fixture.body}`,
+    "-p", `/editorial-guidance full ${fixture.body}`,
     "--allowedTools", "Read Glob Grep Skill",
     "--disallowedTools", "Edit Write Bash",
     "--append-system-prompt", SYSTEM_PROMPT,

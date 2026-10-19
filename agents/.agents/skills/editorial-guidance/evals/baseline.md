@@ -14,7 +14,7 @@ A full run of 21 fixtures costs about $14, about $0.22 per call.
 
 ## After the `--fix` interface
 
-Same fixtures, now called as `/editorial-guidance slop prose <fragment>`
+Same fixtures, called as `/editorial-guidance slop prose <fragment>`
 without `--fix`. Every rule scores the same as above, with no flaky fixtures.
 The run cost $16.54, about $0.26 per call. The extra cost likely comes from
 reading quick-check.md and report.md.
