@@ -6,8 +6,8 @@ script. The sections [«Что вычитывать»](../SKILL.md#что-выч
 [«Где правила пересекаются»](../SKILL.md#где-правила-пересекаются) of SKILL.md
 apply here too.
 
-Rule IDs are the same as in [rules/slop.md](rules/slop.md) and
-[rules/prose.md](rules/prose.md). Those files give Russian examples, so this
+Rule IDs are the same as in [rules/](rules/), one file per rule, indexed by
+[rules/slop.md](rules/slop.md) and [rules/prose.md](rules/prose.md). Those files give Russian examples, so this
 file gives the English reading of each rule and the English marker lists.
 When the two disagree on an example, this file wins for English text.
 
