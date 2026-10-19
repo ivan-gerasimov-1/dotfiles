@@ -1,8 +1,25 @@
+---
+rules:
+  - A001
+  - A002
+  - B001
+  - B004
+  - P001
+  - P004
+  - P005
+  - P006
+  - P010
+  - P012
+  - P013
+  - P014
+  - P015
+---
+
 # Fragment check (English)
 
 Check of an English fragment of up to five sentences, from an editor selection
 or from chat. One agent does everything, without subagents and without the
-script. The sections [«Вызов»](../SKILL.md#вызов),
+`checks.sh` checks. The sections [«Вызов»](../SKILL.md#вызов),
 [«Что вычитывать»](../SKILL.md#что-вычитывать) and
 [«Где правила пересекаются»](../SKILL.md#где-правила-пересекаются) of SKILL.md
 apply here too.
@@ -12,12 +29,16 @@ Rule IDs are the same as in [rules/](rules/), one file per rule, indexed by
 file gives the English reading of each rule and the English marker lists.
 When the two disagree on an example, this file wins for English text.
 
+The `rules` list in the frontmatter repeats the IDs from the table [«Applies»](#applies).
+`scripts/rules.sh --fragment en` selects rules by it. Change both together.
+
 ## Order
 
-1. Take the selected rules from the table [«Applies»](#applies). Without
-   selectors, that is the `recommended` rules in the table. If a selected rule is in
-   [«Not applied»](#not-applied), say it can't be checked on a fragment.
-2. Read those rules for their intent, then the English lists below. Skip the
+1. `scripts/rules.sh --fragment en <selectors>` prints the rules to check.
+   They are the selected rules from the table [«Applies»](#applies). If the
+   script names rules that a fragment doesn't check, say so.
+2. The [report template](report.md) is already printed by `scripts/context.sh en`.
+   Read the rules for their intent, then the English lists below. Skip the
    common glossary, since it covers Russian. Read the project glossary if the
    project wires one in (see [SKILL.md](../SKILL.md)), for product and code
    terms only.
