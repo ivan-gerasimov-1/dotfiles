@@ -1,20 +1,3 @@
----
-rules:
-  - A001
-  - A002
-  - B001
-  - B004
-  - P001
-  - P004
-  - P005
-  - P006
-  - P010
-  - P012
-  - P013
-  - P014
-  - P015
----
-
 # Fragment check (English)
 
 Check of an English fragment of up to ten sentences, from an editor selection
@@ -29,12 +12,14 @@ Rule IDs are the same as in [rules/](rules/), one file per rule, indexed by
 file gives the English reading of each rule and the English marker lists.
 When the two disagree on an example, this file wins for English text.
 
-The `rules` list in the frontmatter repeats the IDs from the table [«Applies»](#applies).
-`scripts/rules.sh --fragment en` selects rules by it. Change both together.
+`scripts/rules.sh en --fragment` takes the fragment list from
+[quick-check.md](quick-check.md) and keeps the rules that have `en` in their
+`languages`. To check a rule on English, add `en` to its `languages` and a row
+to the table [«Applies»](#applies).
 
 ## Order
 
-1. `scripts/rules.sh --fragment en <selectors>` prints the rules to check.
+1. `scripts/rules.sh en --fragment <selectors>` prints the rules to check.
    They are the selected rules from the table [«Applies»](#applies). If the
    script names rules that a fragment doesn't check, say so.
 2. The [report template](report.md) is already printed by `scripts/context.sh en`.
