@@ -1,6 +1,7 @@
 /**
  * Runs an editorial-guidance report on each fixture and scores each rule.
- * The report uses the `full` preset without `--fix`, so nothing is edited.
+ * The report runs in the default single flow without `--fix`, so one agent
+ * checks each fixture and nothing is edited.
  *
  * Usage: node evals/eval.ts [RULE | RULE/NAME ...] [--runs N] [--jobs N] [--model NAME]
  *
@@ -8,6 +9,8 @@
  * the rule must fire (`expect: flag`) or stay silent (`expect: pass`).
  * An optional `not: P006, A002` lists rules that must stay silent too, which
  * checks that an overlapping finding goes to its owner.
+ * An optional `selectors: fragment B005` replaces the default `fragment` preset,
+ * for a fixture whose competing rule is not in that preset.
  * Only these rules are scored. Other rules a fixture fires are listed as extra,
  * and a fired `not` rule is marked with `!`.
  * Raw replies go to results/<timestamp>/.
@@ -37,6 +40,8 @@ type Fixture = {
   expect: Expect;
   /** Rules that must not fire on this fixture. */
   not: string[];
+  /** Presets and rule IDs passed to the skill. */
+  selectors: string[];
   note: string;
   body: string;
 };
@@ -77,6 +82,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, "fixtures");
 const RESULTS = join(HERE, "results");
 
+const DEFAULT_SELECTORS = ["fragment"];
+
 const SYSTEM_PROMPT =
   "Eval run. End the reply with one line: " +
   "FOUND: <comma-separated rule IDs of your findings, or none>";
@@ -108,11 +115,20 @@ function parseFixture(rule: string, file: string): Fixture {
     throw new Error(`${path}: not has a bad rule ID ${badId}`);
   }
 
+  const listed = (meta.get("selectors") ?? "").split(/\s+/).filter((word) => word !== "");
+  const selectors = listed.length > 0 ? listed : DEFAULT_SELECTORS;
+
+  const badSelector = selectors.find((word) => !/^([A-Z]\d{3}|[a-z]+)$/.test(word));
+  if (badSelector !== undefined) {
+    throw new Error(`${path}: selectors has a bad preset or rule ID ${badSelector}`);
+  }
+
   return {
     rule,
     name: file.replace(/\.md$/, ""),
     expect,
     not,
+    selectors,
     note: meta.get("note") ?? "",
     body: body.trim(),
   };
@@ -158,7 +174,7 @@ function loadFixtures(selectors: string[]): Fixture[] {
  */
 function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Promise<Run> {
   const args = [
-    "-p", `/editorial-guidance full ${fixture.body}`,
+    "-p", `/editorial-guidance ${fixture.selectors.join(" ")} ${fixture.body}`,
     "--allowedTools", "Read Glob Grep Skill Bash(*/scripts/rules.sh *) Bash(*/scripts/context.sh *)",
     "--disallowedTools", "Edit Write",
     "--append-system-prompt", SYSTEM_PROMPT,

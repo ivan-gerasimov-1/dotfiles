@@ -1,5 +1,6 @@
 ---
 expect: flag
+selectors: fragment B005
 not: B005
 note: канцелярит при выбранном prose идёт по P005, а не B005
 ---
