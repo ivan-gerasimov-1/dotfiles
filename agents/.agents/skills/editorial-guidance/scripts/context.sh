@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prints what a check needs besides presets and rules, so an agent reads it in one call:
 # the flow, how to check, the report template, the edit rules with --fix and then,
-# for the single flow, the glossary (ru) or the English reading (en),
+# for the single flow on Russian text, the common glossary,
 # for the parallel flow, the subagent prompt.
 # Usage: context.sh <ru|en> <single|parallel> [--fix]
 # Exit code 2 means bad usage.
@@ -45,10 +45,8 @@ if [ "$flow" = parallel ]; then
   # Subagents read the glossary and the English reading themselves.
   body "$refs/subagent-prompt.md"
 elif [ "$lang" = ru ]; then
+  # The common glossary covers Russian text, so English skips it.
   for glossary in "$refs"/glossary/*.md; do
     body "$glossary"
   done
-else
-  # The common glossary covers Russian text, so English skips it.
-  body "$refs/english.md"
 fi

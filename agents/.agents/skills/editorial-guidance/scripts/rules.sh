@@ -11,7 +11,8 @@
 # Preset frontmatter: `rules: [..]` lists rules, `extends: [..]` adds other presets,
 # `passes` splits the preset's rules into passes. Every rule sits in exactly one pass
 # of one preset. A rule lists its languages in `languages: [ru, en]` and names its
-# category, one of references/categories.md.
+# category, one of references/categories.md. The rule text is Russian; every other
+# language in `languages` gets its own section at the end, such as `## en`.
 # Exit code 2 means bad usage or an unknown selector.
 set -euo pipefail
 export LC_ALL=C
@@ -156,10 +157,23 @@ print_notes() {
   done
 }
 
+# Rule text for the language: the Russian text, plus the `## <lang>` section for
+# another language. Sections of other languages are left out.
+rule_text() {
+  body "$1" | awk -v lang="$2" '
+    /^## [a-z][a-z]$/ { skip = (substr($0, 4) != lang); if (skip) next }
+    /^## / && !/^## [a-z][a-z]$/ { skip = 0 }
+    !skip { print }' | awk 'NF { while (blanks > 0) { print ""; blanks-- } print; next } { blanks++ }'
+}
+
 print_rules() {
   local id
+  if [ "$lang" != ru ] && [ $# -gt 0 ]; then
+    echo "For $lang text, a rule's \`## $lang\` section wins over the Russian examples above it."
+    echo
+  fi
   for id in "$@"; do
-    body "$rules_dir/$id.md"
+    rule_text "$rules_dir/$id.md" "$lang"
     echo
   done
 }
@@ -187,7 +201,7 @@ print_passes() {
 }
 
 check() {
-  local status=0 file name parent id langs lang category others count missing
+  local status=0 file name parent id langs lang section category others count missing
 
   for file in "$presets_dir"/*.md; do
     name=$(basename "$file" .md)
@@ -214,6 +228,14 @@ check() {
         ru | en) ;;
         *) echo "$id: unknown language $lang"; status=1 ;;
       esac
+    done
+    for lang in en; do
+      section=$(grep -c "^## $lang\$" "$file" || true)
+      if grep -qx "$lang" <<< "$langs"; then
+        [ "$section" = 1 ] || { echo "$id: lists $lang but has no ## $lang section"; status=1; }
+      else
+        [ "$section" = 0 ] || { echo "$id: has a ## $lang section but does not list $lang"; status=1; }
+      fi
     done
 
     [ "$(fm_value "$file" id)" = "$id" ] || { echo "$id: id does not match the file name"; status=1; }
