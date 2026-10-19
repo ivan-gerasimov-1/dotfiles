@@ -171,7 +171,7 @@ function parseReply(stdout: string, stderr: string): Run {
     return { found: null, cost, reply };
   }
 
-  const ids = lastLine.match(/\b[ABP]\d{1,2}\b/g) ?? [];
+  const ids = lastLine.match(/\b[A-Z]\d{3}\b/g) ?? [];
 
   return { found: new Set(ids), cost, reply };
 }
