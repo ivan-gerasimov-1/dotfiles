@@ -24,7 +24,7 @@ When the two disagree on an example, this file wins for English text.
 3. Check the fragment in pass order: slop first, then words, grammar and
    readability.
 4. Without `--fix`, edit nothing. Return the findings in the
-   [report format](../SKILL.md#отчёт). No slop score.
+   [report format](report.md). No slop score.
 5. With `--fix`, edit a fragment from a file in place with Edit, and return a
    fragment from chat corrected. Under the text, list the edits with rule IDs.
 
