@@ -1,11 +1,12 @@
 ---
 id: slop
 title: "Правила слопа"
+rules: [WO002]
 passes:
   - title: "Контентный слоп"
     rules: [PA001, SU001, SU002, PA002, SU003]
   - title: "Стилевой слоп"
-    rules: [CA001, CA002, CA003, WO001, WO002, CA004]
+    rules: [CA001, CA002, CA003, WO001, CA004]
 ---
 
 # slop
@@ -28,7 +29,10 @@ passes:
 | Проход | Правила |
 |---|---|
 | 1. Контентный слоп | [PA001](../rules/PA001.md), [SU001](../rules/SU001.md), [SU002](../rules/SU002.md), [PA002](../rules/PA002.md), [SU003](../rules/SU003.md) |
-| 2. Стилевой слоп | [CA001](../rules/CA001.md), [CA002](../rules/CA002.md), [CA003](../rules/CA003.md), [WO001](../rules/WO001.md), [WO002](../rules/WO002.md), [CA004](../rules/CA004.md), [глоссарий](../glossary/) |
+| 2. Стилевой слоп | [CA001](../rules/CA001.md), [CA002](../rules/CA002.md), [CA003](../rules/CA003.md), [WO001](../rules/WO001.md), [CA004](../rules/CA004.md), [глоссарий](../glossary/) |
+
+Кроме проходов, пресет включает [WO002](../rules/WO002.md), канцелярит. Его проход
+задан в другом пресете, а здесь находки WO002 считаются стилевыми тиками.
 
 ## Оценка
 

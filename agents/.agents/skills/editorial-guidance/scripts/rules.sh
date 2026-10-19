@@ -98,13 +98,14 @@ preset_chain() {
   echo "$1"
 }
 
-# Rule IDs of a preset in file order: extended presets first, then `rules`, then passes.
+# Rule IDs of a preset: extended presets first, then each preset's own passes, then
+# its `rules`. Passes go first so the preset's own passes run before borrowed ones.
 preset_rules() {
   local name file
   for name in $(preset_chain "$1"); do
     file=$(preset_file "$name")
-    fm_list "$file" rules
     preset_passes "$file" | cut -f3 | tr ' ' '\n' | grep . || true
+    fm_list "$file" rules
   done
 }
 
@@ -178,7 +179,7 @@ print_passes() {
 }
 
 check() {
-  local status=0 file name parent id langs lang category count missing
+  local status=0 file name parent id langs lang category others count missing
 
   for file in "$presets_dir"/*.md; do
     name=$(basename "$file" .md)
@@ -208,6 +209,10 @@ check() {
     done
 
     [ "$(fm_value "$file" id)" = "$id" ] || { echo "$id: id does not match the file name"; status=1; }
+
+    # Rules stay independent: how they relate lives in checking.md and the presets.
+    others=$(body "$file" | grep -oE '[A-Z]{2}[0-9]{3}' | grep -vx "$id" | sort -u || true)
+    [ -z "$others" ] || { echo "$id: mentions other rules $(echo $others)"; status=1; }
 
     category=$(fm_value "$file" category)
     fm_list "$categories_file" categories | grep -qx "$category" ||
