@@ -173,7 +173,7 @@ function loadFixtures(selectors: string[]): Fixture[] {
 
 /**
  * Runs the skill once on a fixture. Edit is off, so the run cannot change files. Write
- * and mktemp stay on, because the skill saves chat text to a temp file for checks.sh.
+ * and mktemp stay on, because the skill saves chat text to a temp file for checks.ts.
  * TMPDIR points at the run directory, so those temp files go away with it.
  * Stdin is closed right away, otherwise claude waits for it before it starts.
  */
@@ -181,7 +181,7 @@ function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Pr
   const args = [
     "-p", `/editorial-guidance ${fixture.selectors.join(" ")} ${fixture.body}`,
     "--allowedTools",
-    "Read Glob Grep Skill Write Bash(mktemp*) Bash(*/scripts/rules.ts *) Bash(*/scripts/context.sh *) Bash(*/scripts/checks.sh *)",
+    "Read Glob Grep Skill Write Bash(mktemp*) Bash(*/scripts/rules.ts *) Bash(*/scripts/context.sh *) Bash(*/scripts/checks.ts *)",
     "--disallowedTools", "Edit",
     "--append-system-prompt", SYSTEM_PROMPT,
     "--output-format", "json",

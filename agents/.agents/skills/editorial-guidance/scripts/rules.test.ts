@@ -164,7 +164,7 @@ test("check reports where presets, rules and checks disagree", () => {
     "GR003: has a ## de section but does not list de",
     "GR003: more than one ## section for ru",
     "GR003: unknown check nope",
-    "checks.sh: no rule names connectors latin",
+    "checks.ts: no rule names connectors latin",
     "full: missing GR003",
   ]);
 });

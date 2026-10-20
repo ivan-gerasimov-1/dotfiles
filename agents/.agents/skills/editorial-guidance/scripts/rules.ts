@@ -19,7 +19,7 @@
  * preset that extends the named presets and has the named rule IDs as plain rules.
  * A group runs whole and once. A plain rule runs once and drops out when a group to
  * run holds it. A rule lists its languages in `languages: [ru, en]`, names its
- * category, one of references/categories.md, and may name its scripts/checks.sh
+ * category, one of references/categories.md, and may name its scripts/checks.ts
  * checks in `checks: [..]`. The description is Russian and holds for every language.
  * Examples and lists for one language go in its section at the end, `## ru` or `## en`.
  * A section is optional, but its language must be in `languages`.
@@ -28,12 +28,10 @@
  * Needs Node 22.18+ to run TypeScript without a build step.
  */
 
-import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-
-export type Lang = "ru" | "en";
+import { checksFor, type Lang } from "./checks.ts";
 
 export const langs: Lang[] = ["ru", "en"];
 
@@ -66,7 +64,7 @@ export type Model = {
   /** Sorted by ID. */
   rules: Map<string, Rule>;
   categories: string[];
-  /** Checks of scripts/checks.sh that work for the language. */
+  /** Checks of scripts/checks.ts that work for the language. */
   checks: (lang: Lang) => string[];
 };
 
@@ -182,21 +180,6 @@ export function body(text: string): string {
   return out.join("\n");
 }
 
-function checksScript(root: string): (lang: Lang) => string[] {
-  const cache = new Map<Lang, string[]>();
-  return (lang) => {
-    let list = cache.get(lang);
-    if (!list) {
-      const output = execFileSync(join(root, "scripts/checks.sh"), ["--list", lang], {
-        encoding: "utf8",
-      });
-      list = output.split("\n").filter((name) => name !== "");
-      cache.set(lang, list);
-    }
-    return list;
-  };
-}
-
 export function loadModel(root: string): Model {
   const read = (dir: string, match: RegExp) =>
     readdirSync(join(root, dir))
@@ -239,7 +222,7 @@ export function loadModel(root: string): Model {
     "categories",
   );
 
-  return { presets, rules, categories, checks: checksScript(root) };
+  return { presets, rules, categories, checks: checksFor };
 }
 
 export function isRule(model: Model, selector: string): boolean {
@@ -458,7 +441,7 @@ export function check(model: Model): string[] {
 
   const used = new Set([...model.rules.values()].flatMap((rule) => rule.checks));
   const unused = known.filter((check) => !used.has(check));
-  if (unused.length > 0) problems.push(`checks.sh: no rule names ${unused.join(" ")}`);
+  if (unused.length > 0) problems.push(`checks.ts: no rule names ${unused.join(" ")}`);
 
   const inFull = new Set(presetRules(model, "full"));
   const missing = [...model.rules.keys()].filter((id) => !inFull.has(id));
