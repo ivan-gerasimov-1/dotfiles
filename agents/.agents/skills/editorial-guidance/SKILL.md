@@ -59,7 +59,7 @@ metadata:
 | Пресет | Назначение |
 |---|---|
 | [`recommended`](references/presets/recommended.md) | набор по умолчанию для читаемости, для фрагмента и для большого текста |
-| [`light`](references/presets/light.md) | быстрая проверка: правила с механической проверкой или списком маркеров |
+| [`light`](references/presets/light.md) | быстрая и простая проверка по скриптам и узнаваемым оборотам |
 | [`prose`](references/presets/prose.md) | правила языка |
 | [`slop`](references/presets/slop.md) | правила слопа с оценкой от 1 до 5 |
 | [`full`](references/presets/full.md) | все правила |
