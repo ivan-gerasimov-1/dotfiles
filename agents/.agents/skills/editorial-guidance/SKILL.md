@@ -35,6 +35,7 @@ metadata:
 | [`prose`](references/presets/prose.md) | правила языка |
 | [`slop`](references/presets/slop.md) | правила слопа с оценкой от 1 до 5 |
 | [`article`](references/presets/article.md) | слоп и язык для документа целиком |
+| [`task`](references/presets/task.md) | описание задачи в трекере: каркас разделов, код, критерии и язык |
 
 **`--flow`** решает, как идёт проверка. По умолчанию действует `single`.
 
