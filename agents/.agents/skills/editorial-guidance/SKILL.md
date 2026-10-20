@@ -30,7 +30,7 @@ metadata:
 продукта и кода.
 
 Скрипты лежат в каталоге `scripts/` скилла. Вызывай их по полному пути,
-например `<каталог скилла>/scripts/rules.sh ru full`.
+например `<каталог скилла>/scripts/rules.ts ru full`.
 
 ## Что вычитывать
 
@@ -91,7 +91,7 @@ metadata:
 
    | Флоу | Вызовы |
    |---|---|
-   | single | `scripts/context.sh <ru\|en> single [--fix]` и `scripts/rules.sh <ru\|en> <селекторы>` |
-   | parallel | `scripts/context.sh <ru\|en> parallel [--fix]`, `scripts/rules.sh <ru\|en> --notes <селекторы>` и `scripts/rules.sh <ru\|en> --groups <селекторы>` |
+   | single | `scripts/context.sh <ru\|en> single [--fix]` и `scripts/rules.ts <ru\|en> <селекторы>` |
+   | parallel | `scripts/context.sh <ru\|en> parallel [--fix]`, `scripts/rules.ts <ru\|en> --notes <селекторы>` и `scripts/rules.ts <ru\|en> --groups <селекторы>` |
 
 3. Действуй по выведенному флоу.
