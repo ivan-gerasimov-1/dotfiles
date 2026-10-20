@@ -94,7 +94,7 @@
 | `/editorial-guidance` | отчёт по `recommended` одним агентом |
 | `/editorial-guidance --fix` | правка по `recommended` |
 | `/editorial-guidance slop` | отчёт по слопу с оценкой от 1 до 5 |
-| `/editorial-guidance full --flow parallel --fix` | правка по всем правилам, сабагенты по группам |
+| `/editorial-guidance article --flow parallel --fix` | правка документа по слопу и языку, сабагенты по группам |
 | `/editorial-guidance GR003 CA001` | отчёт только по двум правилам |
 | `/editorial-guidance light <текст>` | быстрая и простая проверка |
 

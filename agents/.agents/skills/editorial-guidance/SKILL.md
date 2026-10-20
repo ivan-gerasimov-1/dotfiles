@@ -34,7 +34,7 @@ metadata:
 | [`light`](references/presets/light.md) | быстрая проверка по скриптам и узнаваемым оборотам |
 | [`prose`](references/presets/prose.md) | правила языка |
 | [`slop`](references/presets/slop.md) | правила слопа с оценкой от 1 до 5 |
-| [`full`](references/presets/full.md) | все правила |
+| [`article`](references/presets/article.md) | слоп и язык для документа целиком |
 
 **`--flow`** решает, как идёт проверка. По умолчанию действует `single`.
 

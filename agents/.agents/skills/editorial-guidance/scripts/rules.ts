@@ -450,10 +450,6 @@ export function check(model: Model): string[] {
   const unused = known.filter((check) => !used.has(check));
   if (unused.length > 0) problems.push(`checks.ts: no rule names ${unused.join(" ")}`);
 
-  const inFull = new Set(presetRules(model, "full"));
-  const missing = [...model.rules.keys()].filter((id) => !inFull.has(id));
-  if (missing.length > 0) problems.push(`full: missing ${missing.join(" ")}`);
-
   return problems;
 }
 

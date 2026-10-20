@@ -55,7 +55,7 @@ const base = model(
       groups: [{ title: "Own", rules: ["GR003"] }],
     }),
     preset("flat", { rules: ["GR004", "GR002", "GR005"] }),
-    preset("full", { extends: ["base", "flat"], groups: [{ title: "Rest", rules: ["GR003"] }] }),
+    preset("article", { extends: ["base", "flat"], groups: [{ title: "Rest", rules: ["GR003"] }] }),
   ],
   [
     rule("GR001", { checks: ["connectors"] }),
@@ -133,7 +133,7 @@ test("rule text keeps the description and the section of the language", () => {
 
 test("check passes on an agreeing model", () => {
   const agreeing = model(
-    [preset("full", { rules: ["GR001", "TE001"] })],
+    [preset("article", { rules: ["GR001", "TE001"] })],
     [rule("GR001", { checks: ["connectors"] }), rule("TE001", { category: "terms", checks: ["latin"] })],
   );
   assert.deepEqual(check(agreeing), []);
@@ -142,8 +142,8 @@ test("check passes on an agreeing model", () => {
 test("check reports where presets, rules and checks disagree", () => {
   const broken = model(
     [
-      preset("full", { rules: ["GR001", "GR001", "XX001"], groups: [{ title: "G", rules: ["GR002"] }] }),
-      preset("odd", { id: "other", extends: ["full", "nope"] }),
+      preset("article", { rules: ["GR001", "GR001", "XX001"], groups: [{ title: "G", rules: ["GR002"] }] }),
+      preset("odd", { id: "other", extends: ["article", "nope"] }),
     ],
     [
       rule("GR001", { body: "# GR001\n\nНе путать с TE001. Гибриды из глоссария." }),
@@ -152,9 +152,9 @@ test("check reports where presets, rules and checks disagree", () => {
     ],
   );
   assert.deepEqual(check(broken), [
-    "full: has both rules and groups",
-    "full: no rule file for XX001",
-    "full: lists GR001 more than once",
+    "article: has both rules and groups",
+    "article: no rule file for XX001",
+    "article: lists GR001 more than once",
     "odd: id does not match the file name",
     "odd: extends unknown preset nope",
     "odd: no rule file for XX001",
@@ -166,6 +166,5 @@ test("check reports where presets, rules and checks disagree", () => {
     "GR003: more than one ## section for ru",
     "GR003: unknown check nope",
     "checks.ts: no rule names connectors latin",
-    "full: missing GR003",
   ]);
 });
