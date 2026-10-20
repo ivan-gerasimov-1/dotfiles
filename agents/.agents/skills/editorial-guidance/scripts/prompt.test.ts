@@ -11,7 +11,7 @@ import { checkResults, contextFiles, type Doc, guessLang } from "./prompt.ts";
 import type { Model, Rule } from "./rules.ts";
 
 function rule(id: string, checks: string[]): Rule {
-  return { name: id, id, category: "grammar", languages: ["ru", "en"], checks, body: `# ${id}`, text: "" };
+  return { name: id, id, category: "grammar", languages: ["ru", "en"], checks, glossary: false, body: `# ${id}`, text: "" };
 }
 
 const model: Model = {

@@ -36,6 +36,8 @@ export type Rule = {
   category: string;
   languages: string[];
   checks: string[];
+  /** The rule reads the glossary, so a subagent gets it with the rule. */
+  glossary: boolean;
   body: string;
   /** The whole file, frontmatter included. */
   text: string;
@@ -203,6 +205,7 @@ export function loadModel(root: string): Model {
       category: fmValue(fm, "category"),
       languages: fmList(fm, "languages"),
       checks: fmList(fm, "checks"),
+      glossary: fmValue(fm, "glossary") === "true",
       body: body(text),
       text,
     });
@@ -436,6 +439,10 @@ export function check(model: Model): string[] {
 
     for (const check of rule.checks) {
       if (!known.includes(check)) problems.push(`${name}: unknown check ${check}`);
+    }
+
+    if (rule.body.includes("глоссари") && !rule.glossary) {
+      problems.push(`${name}: mentions the glossary but has no glossary: true`);
     }
   }
 

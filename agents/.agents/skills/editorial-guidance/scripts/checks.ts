@@ -28,6 +28,8 @@ type Check = {
   langs: Lang[];
   /** What the check prints, in Russian, for the agent that reads its output. */
   description: string;
+  /** Reads the file on disk, so text pasted in chat skips the check. */
+  requiresFile?: boolean;
 };
 
 const checks: Record<string, Check> = {
@@ -69,11 +71,13 @@ const checks: Record<string, Check> = {
     run: fileLines,
     langs: ["ru", "en"],
     description: "Ссылки `file:line` в прозе и во встроенном коде.",
+    requiresFile: true,
   },
   links: {
     run: (text, file) => links(text, dirname(file)),
     langs: ["ru", "en"],
     description: "Относительные ссылки на файлы и каталоги, которых нет. Якоря скрипт не проверяет.",
+    requiresFile: true,
   },
   contrast: {
     run: contrast,
@@ -101,6 +105,11 @@ export function run(check: string, text: string, file: string, glossaries: strin
 /** What a check prints, for the agent that reads its output. */
 export function describe(check: string): string {
   return find(check)?.description ?? "";
+}
+
+/** Whether a check reads the file on disk, which text pasted in chat does not have. */
+export function requiresFile(check: string): boolean {
+  return find(check)?.requiresFile ?? false;
 }
 
 // JavaScript's \w and \b know only ASCII, so a Cyrillic word needs its own boundaries.

@@ -20,7 +20,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { describe, type Lang, prose, run, words } from "./checks.ts";
+import { describe, type Lang, prose, requiresFile, run, words } from "./checks.ts";
 import { commonGlossary, projectGlossary } from "./glossary.ts";
 import { body, checkRules, groupLines, isPreset, isRule, loadModel, type Model, notes, plan, ruleText } from "./rules.ts";
 
@@ -97,8 +97,9 @@ function readBody(file: string): string {
 export function checkResults(model: Model, ids: string[], doc: Doc): string {
   const byCheck = checkRules(model, doc.lang, ids);
   if (doc.fromChat) {
-    byCheck.delete("file-lines");
-    byCheck.delete("links");
+    for (const check of byCheck.keys()) {
+      if (requiresFile(check)) byCheck.delete(check);
+    }
   }
   if (byCheck.size === 0) return "";
 
@@ -180,7 +181,7 @@ function checkPrompt(model: Model, doc: Doc, options: Options): string[] {
 function subagentPrompt(model: Model, doc: Doc, ids: string[]): string[] {
   const planned = plan(model, doc.lang, ids);
   const rules = planned.kept.flatMap((id) => model.rules.get(id) ?? []);
-  const needsGlossary = rules.some((rule) => rule.body.includes("глоссари"));
+  const needsGlossary = rules.some((rule) => rule.glossary);
 
   return [
     header(doc),
