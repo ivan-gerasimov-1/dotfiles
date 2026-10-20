@@ -3,7 +3,7 @@ initial-command = direct:/opt/homebrew/bin/herdr
 theme = owl
 
 auto-update = off
-confirm-close-surface = false
+confirm-close-surface = always
 notify-on-command-finish = unfocused
 quit-after-last-window-closed = true
 
