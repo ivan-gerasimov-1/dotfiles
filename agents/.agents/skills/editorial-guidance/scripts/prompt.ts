@@ -15,12 +15,13 @@
  * Needs Node 22.18+ to run TypeScript without a build step.
  */
 
-import { existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { describe, type Lang, prose, run, words } from "./checks.ts";
+import { commonGlossary, projectGlossary } from "./glossary.ts";
 import { body, checkRules, groupLines, isPreset, isRule, loadModel, type Model, notes, plan, ruleText } from "./rules.ts";
 
 const usage = `Usage: prompt.ts [<selector>...] [--flow single|parallel] [--fix] [--lang ru|en] <file | ->
@@ -55,6 +56,8 @@ export type Doc = {
   lang: Lang;
   /** Pasted in chat and saved to a temp file, so it has no place of its own. */
   fromChat: boolean;
+  /** Files of the project glossary. */
+  glossary: string[];
 };
 
 /** Russian when the prose has at least as many Cyrillic letters as Latin ones. */
@@ -65,43 +68,6 @@ export function guessLang(text: string): Lang {
   const cyrillic = letters.match(/\p{Script=Cyrillic}/gu)?.length ?? 0;
   const latin = letters.match(/[A-Za-z]/g)?.length ?? 0;
   return cyrillic >= latin && cyrillic > 0 ? "ru" : "en";
-}
-
-/**
- * Files of the project glossary: the path on an `editorial-guidance glossary: <path>`
- * line in the nearest AGENTS.md or CLAUDE.md above a start directory. The first start
- * directory that finds one wins. A directory means every .md file in it.
- */
-export function projectGlossary(starts: string[]): string[] {
-  for (const start of starts) {
-    for (let dir = start; ; dir = dirname(dir)) {
-      for (const name of ["AGENTS.md", "CLAUDE.md"]) {
-        const file = join(dir, name);
-        if (!existsSync(file)) continue;
-
-        const line = /^`?editorial-guidance glossary: *([^`\s]+)`?\s*$/m.exec(readFileSync(file, "utf8"));
-        if (!line?.[1]) continue;
-
-        const path = resolve(dir, line[1]);
-        const stat = statSync(path, { throwIfNoEntry: false });
-        if (stat?.isFile()) return [path];
-        if (stat?.isDirectory()) return markdownFiles(path);
-        return [];
-      }
-
-      if (dirname(dir) === dir) break;
-    }
-  }
-
-  return [];
-}
-
-/** The .md files of a directory, sorted. */
-function markdownFiles(dir: string): string[] {
-  return readdirSync(dir)
-    .filter((file) => file.endsWith(".md"))
-    .sort()
-    .map((file) => join(dir, file));
 }
 
 /**
@@ -116,11 +82,6 @@ export function contextFiles(lang: Lang, flow: Flow, fix: boolean, glossary: str
     ...(flow === "parallel" ? [join(refs, "subagent-prompt.md")] : []),
     ...(flow === "single" && lang === "ru" ? glossary : []),
   ];
-}
-
-/** Files of the common glossary, which covers Russian text. */
-function commonGlossary(): string[] {
-  return markdownFiles(join(refs, "glossary"));
 }
 
 /** File text as the agent sees it, without frontmatter and editor notes. */
@@ -144,7 +105,7 @@ export function checkResults(model: Model, ids: string[], doc: Doc): string {
   const clean: string[] = [];
   for (const [check, rules] of byCheck) {
     const label = `${check} (${rules.join(", ")})`;
-    const lines = run(check, doc.text, doc.file) ?? [];
+    const lines = run(check, doc.text, doc.file, [...commonGlossary(), ...doc.glossary]) ?? [];
     if (lines.length === 0) {
       clean.push(label);
       continue;
@@ -167,32 +128,32 @@ export function checkResults(model: Model, ids: string[], doc: Doc): string {
 }
 
 /** The first line: language, size, where the text is and the project glossary. */
-function header(doc: Doc, glossary: string[]): string {
+function header(doc: Doc): string {
   return [
     `Язык текста: ${doc.lang}. Слов прозы без блоков кода: ${words(doc.text)}.`,
     doc.fromChat ? `Текст из чата сохранён в файл ${doc.file}.` : `Документ: ${doc.file}.`,
-    glossary.length > 0 ? `Проектный глоссарий: ${glossary.join(", ")}.` : "Проектного глоссария нет.",
-    ...(doc.lang === "en" && glossary.length > 0
+    doc.glossary.length > 0 ? `Проектный глоссарий: ${doc.glossary.join(", ")}.` : "Проектного глоссария нет.",
+    ...(doc.lang === "en" && doc.glossary.length > 0
       ? ["Для английского текста проектный глоссарий нужен только ради имён продукта и кода."]
       : []),
   ].join(" ");
 }
 
 /** The whole check for the main agent: the flow, presets and rules, or the groups for subagents. */
-function checkPrompt(model: Model, doc: Doc, options: Options, glossary: string[]): string[] {
+function checkPrompt(model: Model, doc: Doc, options: Options): string[] {
   const { flow, fix } = options;
   const selectors = options.selectors.length > 0 ? options.selectors : ["recommended"];
   const planned = plan(model, doc.lang, selectors);
 
   const parts = [
-    header(doc, glossary),
+    header(doc),
     ...contextFiles(doc.lang, flow, fix, commonGlossary()).map(readBody),
   ];
 
   if (flow === "single") {
     const rules = planned.kept.flatMap((id) => model.rules.get(id) ?? []);
     parts.push(
-      ...glossary.map(readBody),
+      ...doc.glossary.map(readBody),
       notes(model, selectors),
       ...rules.map((rule) => ruleText(rule, doc.lang)),
       checkResults(model, planned.kept, doc),
@@ -212,16 +173,16 @@ function checkPrompt(model: Model, doc: Doc, options: Options, glossary: string[
 }
 
 /** One group for a subagent: its rules, the glossaries when the rules use them, and their check results. */
-function subagentPrompt(model: Model, doc: Doc, ids: string[], glossary: string[]): string[] {
+function subagentPrompt(model: Model, doc: Doc, ids: string[]): string[] {
   const planned = plan(model, doc.lang, ids);
   const rules = planned.kept.flatMap((id) => model.rules.get(id) ?? []);
   const needsGlossary = rules.some((rule) => rule.body.includes("глоссари"));
 
   return [
-    header(doc, glossary),
+    header(doc),
     ...rules.map((rule) => ruleText(rule, doc.lang)),
     ...(needsGlossary && doc.lang === "ru" ? commonGlossary().map(readBody) : []),
-    ...(needsGlossary ? glossary.map(readBody) : []),
+    ...(needsGlossary ? doc.glossary.map(readBody) : []),
     checkResults(model, planned.kept, doc),
   ];
 }
@@ -259,7 +220,10 @@ function parse(args: string[]): Options {
   return { selectors, target, flow, fix, lang, subagent };
 }
 
-/** Reads the text. Chat text goes to a temp file, so subagents can read it by path. */
+/**
+ * Reads the text and finds its project glossary. Chat text goes to a temp file,
+ * so subagents can read it by path.
+ */
 function readDoc(target: string, lang: Lang | undefined): Doc {
   const fromChat = target === "-";
   let file = target;
@@ -272,7 +236,9 @@ function readDoc(target: string, lang: Lang | undefined): Doc {
   }
 
   const text = readFileSync(file, "utf8");
-  return { file, text, fromChat, lang: lang ?? guessLang(text) };
+  // Chat text has no place of its own, so its project is the working directory.
+  const starts = fromChat ? [process.cwd()] : [dirname(realpathSync(file)), process.cwd()];
+  return { file, text, fromChat, lang: lang ?? guessLang(text), glossary: projectGlossary(starts) };
 }
 
 /** Writes the output, or a pointer to a temp file when the output is too long. */
@@ -301,15 +267,7 @@ function main(args: string[]): void {
   }
 
   const doc = readDoc(options.target, options.lang);
-  // Chat text has no place of its own, so its project is the working directory.
-  const starts = doc.fromChat ? [process.cwd()] : [dirname(realpathSync(doc.file)), process.cwd()];
-  const glossary = projectGlossary(starts);
-
-  write(
-    options.subagent
-      ? subagentPrompt(model, doc, options.selectors, glossary)
-      : checkPrompt(model, doc, options, glossary),
-  );
+  write(options.subagent ? subagentPrompt(model, doc, options.selectors) : checkPrompt(model, doc, options));
 }
 
 // Runs only as a script, so tests can import the functions. The skill directory is

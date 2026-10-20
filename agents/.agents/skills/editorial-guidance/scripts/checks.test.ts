@@ -12,12 +12,12 @@ import {
   contrast,
   ellipsis,
   fileLines,
+  glossary,
   hybrids,
   latin,
   links,
   longSentences,
   prose,
-  variants,
   words,
 } from "./checks.ts";
 
@@ -56,9 +56,18 @@ test("latin counts words longer than two letters, most frequent first", () => {
   ]);
 });
 
-test("variants lists a concept written in two or more forms", () => {
-  assert.deepEqual(variants("Бэкенд и бэку.\nbackend, бэкап и фронтенд.\n"), [
-    "бэкенд: backend (2); бэк (1); бэкенд (1)",
+test("glossary finds terms in any case, whole words only, code aside", () => {
+  const rows = [
+    { terms: ["бэк", "backend"], replacement: "«бэкенд»" },
+    { terms: ["жирный лид"], replacement: "«заголовок в подбор»" },
+    { terms: ["консьюмеры"], replacement: "«потребители»" },
+  ];
+  const text = "Бэку и бэкенду, бэкап.\nBackends, `backend`, жирного лида.\nКонсьюмерам.\n";
+  assert.deepEqual(glossary(text, rows), [
+    "1: Бэку → «бэкенд»",
+    "2: Backends → «бэкенд»",
+    "2: жирного лида → «заголовок в подбор»",
+    "3: Консьюмерам → «потребители»",
   ]);
 });
 

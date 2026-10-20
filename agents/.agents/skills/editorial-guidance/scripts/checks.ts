@@ -14,6 +14,7 @@
 import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
+import { commonGlossary, projectGlossary, type Replacement, replacements } from "./glossary.ts";
 
 export type Lang = "ru" | "en";
 
@@ -21,7 +22,8 @@ export type Lang = "ru" | "en";
 export type Line = { n: number; text: string };
 
 type Check = {
-  run: (text: string, file: string) => string[];
+  /** Reads the text, the path of its file and the paths of its glossaries. */
+  run: (text: string, file: string, glossaries: string[]) => string[];
   /** Languages of the text the check reads. */
   langs: Lang[];
   /** What the check prints, in Russian, for the agent that reads its output. */
@@ -40,11 +42,12 @@ const checks: Record<string, Check> = {
     description:
       "Латинские слова в прозе: число вхождений, слово, строки. По числу видно и имя кода, записанное по-разному.",
   },
-  variants: {
-    run: variants,
+  glossary: {
+    run: (text, _file, glossaries) =>
+      glossary(text, glossaries.flatMap((path) => replacements(readFileSync(path, "utf8")))),
     langs: ["ru"],
     description:
-      "Понятия, записанные больше чем одним вариантом. Скрипт знает только частые пары, остальные варианты ищи чтением.",
+      "Термины из таблиц «Заменять» общего и проектного глоссариев, с заменой из таблицы. Пояснение в скобках у термина скрипт не учитывает, его проверяй чтением.",
   },
   connectors: {
     run: connectors,
@@ -91,8 +94,8 @@ export function checksFor(lang: Lang): string[] {
 }
 
 /** Output lines of a check, or null when there is no such check. */
-export function run(check: string, text: string, file: string): string[] | null {
-  return find(check)?.run(text, file) ?? null;
+export function run(check: string, text: string, file: string, glossaries: string[]): string[] | null {
+  return find(check)?.run(text, file, glossaries) ?? null;
 }
 
 /** What a check prints, for the agent that reads its output. */
@@ -186,46 +189,38 @@ export function latin(text: string): string[] {
     .map(([name, at]) => `${String(at.length).padStart(4)} ${name} (${[...new Set(at)].join(", ")})`);
 }
 
-/** The concept a lowercase form belongs to, and the name the form prints under. */
-function variantOf(form: string): [concept: string, name: string] {
-  if (form.startsWith("бэкенд")) return ["бэкенд", "бэкенд"];
-  if (form.startsWith("бэк")) return ["бэкенд", "бэк"];
-  if (form === "backend") return ["бэкенд", "backend"];
-  if (form.startsWith("фронтенд")) return ["фронтенд", "фронтенд"];
-  if (form.startsWith("фронт")) return ["фронтенд", "фронт"];
-  if (form === "frontend") return ["фронтенд", "frontend"];
-  // The stem drops case endings.
-  return ["downstream", `downstream-${[...form].slice(11, 16).join("")}…`];
+/** Russian noun and adjective endings, longest first, so a term matches its other cases. */
+const endings = [
+  "ами", "ями", "ого", "его", "ому", "ему",
+  "ом", "ем", "ём", "ой", "ей", "ою", "ею", "ам", "ям", "ах", "ях", "ов", "ев",
+  "ый", "ий", "ая", "яя", "ое", "ее", "ые", "ие", "ым", "им", "ых", "их", "ую", "юю",
+  "а", "я", "о", "е", "ё", "у", "ю", "ы", "и", "ь", "й",
+];
+
+/** One word of a glossary term: a Russian word in any case, a Latin one with a plural ending. */
+function termWord(word: string): string {
+  const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (!/[а-яё]$/i.test(word)) return `${escape(word)}(?:s|es)?`;
+
+  const ending = endings.find((ending) => word.endsWith(ending) && word.length - ending.length >= 3) ?? "";
+  const stem = word.slice(0, word.length - ending.length);
+  return `${escape(stem)}(?:${endings.join("|")})?`;
 }
 
-/** Prints a concept only when it appears in two or more forms. */
-export function variants(text: string): string[] {
-  const pattern = new RegExp(
-    `(?<![\\p{L}\\p{M}\\p{Nd}\\p{Pc}-])(бэкенд${word}*|бэк(?:а|у|ом|е)?${end}|backend|фронтенд${word}*|фронт(?:а|у|ом|е)?${end}|frontend|downstream-[а-яё]+)`,
-    "gu",
+/** Terms of the glossary tables found in prose, each with its replacement. */
+export function glossary(text: string, rows: Replacement[]): string[] {
+  const terms = rows.flatMap(({ terms, replacement }) =>
+    terms.map((term) => ({
+      pattern: new RegExp(`${start}(${term.split(/\s+/).map(termWord).join("\\s+")})${end}`, "giu"),
+      replacement,
+    })),
   );
 
-  // concept → form → lines
-  const found = new Map<string, Map<string, Set<number>>>();
-  for (const { n, text: line } of prose(text)) {
-    for (const [, form = ""] of line.toLowerCase().matchAll(pattern)) {
-      const [concept, name] = variantOf(form);
-      const forms = found.get(concept) ?? new Map<string, Set<number>>();
-      forms.set(name, (forms.get(name) ?? new Set()).add(n));
-      found.set(concept, forms);
-    }
-  }
-
-  const list = (forms: Map<string, Set<number>>) =>
-    [...forms]
-      .sort(([a], [b]) => compare(a, b))
-      .map(([name, at]) => `${name} (${[...at].sort((a, b) => a - b).join(", ")})`)
-      .join("; ");
-
-  return [...found]
-    .filter(([, forms]) => forms.size >= 2)
-    .sort(([a], [b]) => compare(a, b))
-    .map(([concept, forms]) => `${concept}: ${list(forms)}`);
+  return prose(text).flatMap(({ n, text: line }) =>
+    terms.flatMap(({ pattern, replacement }) =>
+      [...line.matchAll(pattern)].map((match) => `${n}: ${match[1]} → ${replacement}`),
+    ),
+  );
 }
 
 /**
@@ -412,7 +407,8 @@ function main(args: string[]): void {
   }
   if (!statSync(file, { throwIfNoEntry: false })?.isFile()) fail(`No such file: ${file}\n`);
 
-  const out = check.run(readFileSync(file, "utf8"), file);
+  const glossaries = [...commonGlossary(), ...projectGlossary([dirname(realpathSync(file)), process.cwd()])];
+  const out = check.run(readFileSync(file, "utf8"), file, glossaries);
   process.stdout.write(out.map((line) => `${line}\n`).join(""));
 }
 
