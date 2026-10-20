@@ -62,9 +62,10 @@ test("the glossary goes only to the single flow on Russian text", () => {
     "report.md",
     "fix/common.md",
     "fix/single.md",
+    "scope.md",
     "/g/a.md",
   ]);
-  assert.deepEqual(names("en", "single", false), ["flows/single.md", "report.md"]);
+  assert.deepEqual(names("en", "single", false), ["flows/single.md", "report.md", "scope.md"]);
   assert.deepEqual(names("ru", "parallel", true), [
     "flows/parallel.md",
     "report.md",

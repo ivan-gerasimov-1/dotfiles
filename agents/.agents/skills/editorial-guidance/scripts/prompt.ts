@@ -71,15 +71,16 @@ export function guessLang(text: string): Lang {
 }
 
 /**
- * Reference files a flow prints before presets and rules. The glossary goes only to
- * the single flow on Russian text: in the parallel flow subagents get it with their rules.
+ * Reference files a flow prints before presets and rules. What is not checked and the
+ * glossary go only to the single flow, the glossary only on Russian text: in the
+ * parallel flow subagents get them with their rules.
  */
 export function contextFiles(lang: Lang, flow: Flow, fix: boolean, glossary: string[]): string[] {
   return [
     join(refs, "flows", `${flow}.md`),
     join(refs, "report.md"),
     ...(fix ? [join(refs, "fix", "common.md"), join(refs, "fix", `${flow}.md`)] : []),
-    ...(flow === "parallel" ? [join(refs, "subagent-prompt.md")] : []),
+    ...(flow === "parallel" ? [join(refs, "subagent-prompt.md")] : [join(refs, "scope.md")]),
     ...(flow === "single" && lang === "ru" ? glossary : []),
   ];
 }
@@ -172,7 +173,10 @@ function checkPrompt(model: Model, doc: Doc, options: Options): string[] {
   return parts;
 }
 
-/** One group for a subagent: its rules, the glossaries when the rules use them, and their check results. */
+/**
+ * One group for a subagent: what is not checked, its rules, the glossaries when the
+ * rules use them, and their check results.
+ */
 function subagentPrompt(model: Model, doc: Doc, ids: string[]): string[] {
   const planned = plan(model, doc.lang, ids);
   const rules = planned.kept.flatMap((id) => model.rules.get(id) ?? []);
@@ -180,6 +184,7 @@ function subagentPrompt(model: Model, doc: Doc, ids: string[]): string[] {
 
   return [
     header(doc),
+    readBody(join(refs, "scope.md")),
     ...rules.map((rule) => ruleText(rule, doc.lang)),
     ...(needsGlossary && doc.lang === "ru" ? commonGlossary().map(readBody) : []),
     ...(needsGlossary ? doc.glossary.map(readBody) : []),
