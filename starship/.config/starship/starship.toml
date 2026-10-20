@@ -11,6 +11,8 @@ style = "white"
 format = "[$symbol $branch ]($style)"
 symbol = ""
 style = "white"
+truncation_length = 9
+truncation_symbol = "…"
 
 [character]
 success_symbol = "❯"
