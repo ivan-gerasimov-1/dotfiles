@@ -39,6 +39,7 @@ source "$XDG_CONFIG_HOME/zsh/package-manager.zsh"
 
 ### Brew
 alias brew:update="brew update && brew outdated"
+alias brew:up="brew:update && brew upgrade -y && brew:cleanup"
 alias brew:cleanup="brew autoremove && brew cleanup --prune=all"
 alias brew:why="brew uses --installed --recursive"
 
