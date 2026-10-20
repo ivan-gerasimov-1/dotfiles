@@ -22,8 +22,8 @@ export type Line = { n: number; text: string };
 
 type Check = {
   run: (text: string, file: string) => string[];
-  /** Reads only Russian text. */
-  ruOnly?: boolean;
+  /** Languages of the text the check reads. */
+  langs: Lang[];
   /** What the check prints, in Russian, for the agent that reads its output. */
   description: string;
 };
@@ -31,45 +31,50 @@ type Check = {
 const checks: Record<string, Check> = {
   hybrids: {
     run: hybrids,
-    ruOnly: true,
+    langs: ["ru"],
     description: "Слова, где латиница склеена с кириллицей.",
   },
   latin: {
     run: latin,
-    ruOnly: true,
+    langs: ["ru"],
     description:
       "Латинские слова в прозе: число вхождений, слово, строки. По числу видно и имя кода, записанное по-разному.",
   },
   variants: {
     run: variants,
-    ruOnly: true,
+    langs: ["ru"],
     description:
       "Понятия, записанные больше чем одним вариантом. Скрипт знает только частые пары, остальные варианты ищи чтением.",
   },
   connectors: {
     run: connectors,
+    langs: ["ru", "en"],
     description:
       "Тире и точки с запятой в прозе и в прозаических ячейках таблиц. Заголовки, пункты «A vs B», заголовок в подбор с тире после него, точку с запятой в конце пункта списка и ячейки короче шести слов скрипт пропускает. Двоеточия он не ищет, их находят чтением.",
   },
   ellipsis: {
     run: ellipsis,
+    langs: ["ru", "en"],
     description: "Многоточия вне таблиц.",
   },
   "long-sentences": {
     run: longSentences,
+    langs: ["ru", "en"],
     description: "Предложения длиннее 25 слов.",
   },
   "file-lines": {
     run: fileLines,
+    langs: ["ru", "en"],
     description: "Ссылки `file:line` в прозе и во встроенном коде.",
   },
   links: {
     run: (text, file) => links(text, dirname(file)),
+    langs: ["ru", "en"],
     description: "Относительные ссылки на файлы и каталоги, которых нет. Якоря скрипт не проверяет.",
   },
   contrast: {
     run: contrast,
-    ruOnly: true,
+    langs: ["ru"],
     description: "Конструкции «X, а не Y» и «не X, а Y», в том числе разорванные переносом строки.",
   },
 };
@@ -81,7 +86,7 @@ function find(check: string): Check | undefined {
 /** The checks that work for text in the language. */
 export function checksFor(lang: Lang): string[] {
   return Object.entries(checks)
-    .filter(([, check]) => lang === "ru" || !check.ruOnly)
+    .filter(([, check]) => check.langs.includes(lang))
     .map(([name]) => name);
 }
 
