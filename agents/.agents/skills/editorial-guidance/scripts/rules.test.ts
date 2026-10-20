@@ -2,14 +2,14 @@
  * Unit tests for rules.ts on a small made-up model, so they do not depend on
  * the real presets and rules.
  *
- * Usage: node --test scripts/
+ * Usage: node --test scripts/rules.test.ts
  */
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   check,
-  checkLines,
+  checkRules,
   groupLines,
   type Model,
   notes,
@@ -95,13 +95,15 @@ test("the language cuts groups and plain rules, and a named rule gets a note", (
 });
 
 test("checks follow the run order and only those of the language", () => {
-  assert.deepEqual(checkLines(base, "ru", plan(base, "ru", ["child"])), [
-    "connectors: GR003 GR001",
-    "latin: GR003 GR002",
-  ]);
-  assert.deepEqual(checkLines(base, "en", plan(base, "en", ["child"])), [
-    "connectors: GR003 GR001",
-  ]);
+  const ids = (lang: "ru" | "en") => plan(base, lang, ["child"]).kept;
+  assert.deepEqual(
+    [...checkRules(base, "ru", ids("ru"))],
+    [
+      ["connectors", ["GR003", "GR001"]],
+      ["latin", ["GR003", "GR002"]],
+    ],
+  );
+  assert.deepEqual([...checkRules(base, "en", ids("en"))], [["connectors", ["GR003", "GR001"]]]);
 });
 
 test("notes print each preset once, parents first, with its groups", () => {
@@ -117,12 +119,9 @@ test("notes print each preset once, parents first, with its groups", () => {
   );
   assert.equal(
     notes(withHeading, ["child", "base"]),
-    "# base\n\n## Группы\n\n1. Base: GR001, GR002\n\n## Оценка\n\n# child\n\n",
+    "# base\n\n## Группы\n\n1. Base: GR001, GR002\n\n## Оценка\n\n# child",
   );
-  assert.equal(
-    notes(base, ["base"]),
-    "# base\n\n## Группы\n\n1. Base: GR001, GR002\n\n",
-  );
+  assert.equal(notes(base, ["base"]), "# base\n\n## Группы\n\n1. Base: GR001, GR002");
 });
 
 test("rule text keeps the description and the section of the language", () => {

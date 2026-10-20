@@ -1,29 +1,11 @@
 #!/usr/bin/env node
 /**
- * Prints presets and rules in one go, so an agent reads them in one call.
+ * Presets and rules: loads them, plans the run order and prints their texts.
+ * The README describes the file format and the run order.
  *
- * Usage: rules.ts <ru|en> [<selector>...]   preset notes, then the selected rules for the language
- *        rules.ts <ru|en> --notes [<selector>...]   only the preset notes
- *        rules.ts <ru|en> --groups [<selector>...]   the plain rules and groups to run, one per line
- *        rules.ts <ru|en> --ids [<selector>...]   only the rule IDs, in run order
- *        rules.ts <ru|en> --checks [<selector>...]   the mechanical checks of the selected rules
- *        rules.ts --check   check that presets and rule files agree
+ * Usage: rules.ts --check   check that presets, rules and checks agree
  *
- * A selector is a preset name (references/presets/<name>.md) or a rule ID such as GR003.
- * No selectors means the recommended preset.
- *
- * Preset frontmatter holds either `rules: [..]`, plain rules, or `groups`, rules split
- * into titled groups, and may add `extends: [..]`, other presets one level deep. Rules
- * run in this order: plain rules, then groups. In each part the preset's own come
- * first, then those of the presets it extends, in order. The selectors work as a
- * preset that extends the named presets and has the named rule IDs as plain rules.
- * A group runs whole and once. A plain rule runs once and drops out when a group to
- * run holds it. A rule lists its languages in `languages: [ru, en]`, names its
- * category, one of references/categories.md, and may name its scripts/checks.ts
- * checks in `checks: [..]`. The description is Russian and holds for every language.
- * Examples and lists for one language go in its section at the end, `## ru` or `## en`.
- * A section is optional, but its language must be in `languages`.
- * Exit code 2 means bad usage or an unknown selector.
+ * Exit code 1 means problems were found, 2 means bad usage.
  *
  * Needs Node 22.18+ to run TypeScript without a build step.
  */
@@ -64,7 +46,7 @@ export type Model = {
   /** Sorted by ID. */
   rules: Map<string, Rule>;
   categories: string[];
-  /** Checks of scripts/checks.ts that work for the language. */
+  /** Checks of checks.ts that work for the language. */
   checks: (lang: Lang) => string[];
 };
 
@@ -97,22 +79,24 @@ function unique<T>(items: T[]): T[] {
 function frontmatter(text: string): string[] {
   const lines = text.split("\n");
   if (lines[0] !== "---") return [];
+
   const end = lines.indexOf("---", 1);
   return lines.slice(1, end === -1 ? undefined : end);
 }
 
+/** Items of a `[a, b]` list. */
+function listItems(line: string): string[] {
+  return line
+    .replace(/^[^[]*\[/, "")
+    .replace(/\].*$/, "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "");
+}
+
 /** Items of a top-level `key: [a, b]` line. */
 function fmList(fm: string[], key: string): string[] {
-  return fm
-    .filter((line) => line.startsWith(`${key}: [`))
-    .flatMap((line) =>
-      line
-        .replace(/^[^[]*\[/, "")
-        .replace(/\].*$/, "")
-        .replaceAll(" ", "")
-        .split(","),
-    )
-    .filter((item) => item !== "");
+  return fm.filter((line) => line.startsWith(`${key}: [`)).flatMap(listItems);
 }
 
 /** Value of a top-level `key: value` line. */
@@ -125,6 +109,7 @@ function fmValue(fm: string[], key: string): string {
 function fmGroups(fm: string[]): Preset["groups"] {
   const groups: Preset["groups"] = [];
   let inside = false;
+
   for (const line of fm) {
     if (line.startsWith("groups:")) {
       inside = true;
@@ -132,19 +117,16 @@ function fmGroups(fm: string[]): Preset["groups"] {
     }
     if (/^[^ ]/.test(line)) inside = false;
     if (!inside) continue;
+
     if (line.startsWith("  - title:")) {
       const title = line.replace(/^ {2}- title: *"?/, "").replace(/"$/, "");
       groups.push({ title, rules: [] });
     }
+
     const group = groups.at(-1);
-    if (group && /^ {4}rules: *\[/.test(line)) {
-      group.rules = line
-        .replace(/^[^[]*\[/, "")
-        .replace(/\].*$/, "")
-        .split(/, */)
-        .filter((id) => id !== "");
-    }
+    if (group && /^ {4}rules: *\[/.test(line)) group.rules = listItems(line);
   }
+
   return groups;
 }
 
@@ -155,32 +137,37 @@ function fmGroups(fm: string[]): Preset["groups"] {
 export function body(text: string): string {
   const lines = text.split("\n");
   if (lines.at(-1) === "") lines.pop();
+
   const out: string[] = [];
   let inFrontmatter = false;
   let inComment = false;
-  let blanks = 0;
-  lines.forEach((line, i) => {
+  let blank = false;
+
+  for (const [i, line] of lines.entries()) {
     if (i === 0 && line === "---") {
       inFrontmatter = true;
-      return;
+      continue;
     }
     if (inFrontmatter) {
       if (line === "---") inFrontmatter = false;
-      return;
+      continue;
     }
+
     if (line.startsWith("<!--")) inComment = true;
     if (inComment) {
       if (line.endsWith("-->")) inComment = false;
-      return;
+      continue;
     }
+
     if (line === "") {
-      if (out.length > 0) blanks++;
-      return;
+      blank = out.length > 0;
+      continue;
     }
-    if (blanks > 0) out.push("");
-    blanks = 0;
+    if (blank) out.push("");
+    blank = false;
     out.push(line);
-  });
+  }
+
   return out.join("\n");
 }
 
@@ -241,6 +228,7 @@ export function isPreset(model: Model, selector: string): boolean {
 function withParents(model: Model, name: string): Preset[] {
   const preset = model.presets.get(name);
   if (!preset) return [];
+
   const parents = preset.extends.flatMap((parent) => model.presets.get(parent) ?? []);
   return [preset, ...parents];
 }
@@ -270,9 +258,12 @@ function presetRules(model: Model, name: string): string[] {
   ];
 }
 
+/**
+ * What to run for the selectors. They work as a preset that extends the named presets
+ * and has the named rule IDs as plain rules.
+ */
 export function plan(model: Model, lang: Lang, selectors: string[]): Plan {
-  const inLanguage = (id: string) =>
-    model.rules.get(id)?.languages.includes(lang) ?? false;
+  const inLanguage = (id: string) => model.rules.get(id)?.languages.includes(lang) ?? false;
   const presets = selectors.filter((selector) => isPreset(model, selector));
 
   // Each group runs once, cut to the rules of the language. A group left empty drops out.
@@ -288,8 +279,7 @@ export function plan(model: Model, lang: Lang, selectors: string[]): Plan {
     .map((group) => ({ ...group, rules: group.rules.filter(inLanguage) }))
     .filter((group) => group.rules.length > 0);
 
-  // Rule IDs named in the selectors, then the presets' plain rules. Each runs once,
-  // only in the language and only when no group to run holds it.
+  // A plain rule runs once, and drops out when a group to run holds it.
   const grouped = new Set(groups.flatMap((group) => group.rules));
   const plain = unique([
     ...selectors.filter((selector) => isRule(model, selector)),
@@ -317,33 +307,36 @@ export function notes(model: Model, selectors: string[]): string {
       .filter((selector) => isPreset(model, selector))
       .flatMap((name) => [...(model.presets.get(name)?.extends ?? []), name]),
   );
+
   return names
     .flatMap((name) => model.presets.get(name) ?? [])
     .map((preset) => {
+      const lines = preset.body.split("\n");
       const list = preset.groups.map(
         (group, i) => `${i + 1}. ${group.title}: ${group.rules.join(", ")}`,
       );
-      const lines = preset.body.split("\n");
-      if (list.length > 0) {
-        const heading = lines.indexOf("## Группы");
-        if (heading === -1) lines.push("", "## Группы", "", ...list);
-        else lines.splice(heading + 1, 0, "", ...list);
-      }
-      return `${lines.join("\n")}\n\n`;
+      if (list.length === 0) return preset.body;
+
+      const heading = lines.indexOf("## Группы");
+      if (heading === -1) lines.push("", "## Группы", "", ...list);
+      else lines.splice(heading + 1, 0, "", ...list);
+      return lines.join("\n");
     })
-    .join("");
+    .join("\n\n");
 }
 
 /** Rule text for the language: the description, plus the `## <lang>` section. */
 export function ruleText(rule: Rule, lang: Lang): string {
   const kept: string[] = [];
   let skip = false;
+
   for (const line of rule.body.split("\n")) {
     const section = /^## ([a-z]{2})$/.exec(line);
     if (section) skip = section[1] !== lang;
     else if (line.startsWith("## ")) skip = false;
     if (!skip) kept.push(line);
   }
+
   // A left-out section leaves blank lines behind at the end.
   while (kept.length > 0 && kept.at(-1)?.trim() === "") kept.pop();
   return kept.map((line) => (line.trim() === "" ? "" : line)).join("\n");
@@ -351,29 +344,27 @@ export function ruleText(rule: Rule, lang: Lang): string {
 
 /** Plain rules and groups to run, one per line, as "<preset> <number> <title>: <IDs>". */
 export function groupLines(planned: Plan): string[] {
-  return [
-    // Plain rules come first, on one line with "-" for the preset and the number.
-    ...(planned.plain.length > 0 ? [`- - Отдельные правила: ${planned.plain.join(" ")}`] : []),
-    ...planned.groups.map(
-      (group) => `${group.preset} ${group.number} ${group.title}: ${group.rules.join(" ")}`,
-    ),
-  ];
+  const groups = planned.groups.map(
+    (group) => `${group.preset} ${group.number} ${group.title}: ${group.rules.join(" ")}`,
+  );
+  if (planned.plain.length === 0) return groups;
+
+  // Plain rules come first, with "-" for the preset and the number.
+  return [`- - Отдельные правила: ${planned.plain.join(" ")}`, ...groups];
 }
 
-/**
- * Mechanical checks of the kept rules that work for the language, one per line as
- * "<check>: <rule IDs>", in the order the rules run.
- */
-export function checkLines(model: Model, lang: Lang, planned: Plan): string[] {
+/** Checks of the rules that work for the language, each with its rules, in run order. */
+export function checkRules(model: Model, lang: Lang, ids: string[]): Map<string, string[]> {
   const known = new Set(model.checks(lang));
   const byCheck = new Map<string, string[]>();
-  for (const id of planned.kept) {
+
+  for (const id of ids) {
     for (const check of model.rules.get(id)?.checks ?? []) {
-      if (!known.has(check)) continue;
-      byCheck.set(check, [...(byCheck.get(check) ?? []), id]);
+      if (known.has(check)) byCheck.set(check, [...(byCheck.get(check) ?? []), id]);
     }
   }
-  return [...byCheck].map(([check, ids]) => `${check}: ${ids.join(" ")}`);
+
+  return byCheck;
 }
 
 /** Problems where presets, rules and checks disagree. No problems means they agree. */
@@ -385,10 +376,12 @@ export function check(model: Model): string[] {
 
   for (const preset of model.presets.values()) {
     const { name } = preset;
+
     if (preset.id !== name) problems.push(`${name}: id does not match the file name`);
     if (preset.rules.length > 0 && preset.groups.length > 0) {
       problems.push(`${name}: has both rules and groups`);
     }
+
     for (const parent of preset.extends) {
       if (!isPreset(model, parent)) {
         problems.push(`${name}: extends unknown preset ${parent}`);
@@ -396,21 +389,25 @@ export function check(model: Model): string[] {
         problems.push(`${name}: extends ${parent}, which extends another preset`);
       }
     }
+
     const ids = presetRules(model, name);
     if (ids.length === 0) problems.push(`${name}: no rules`);
     for (const id of ids) {
       if (!model.rules.has(id)) problems.push(`${name}: no rule file for ${id}`);
     }
+
     const own = repeated([...preset.rules, ...preset.groups.flatMap((group) => group.rules)]);
     if (own.length > 0) problems.push(`${name}: lists ${own.join(" ")} more than once`);
   }
 
   for (const rule of model.rules.values()) {
-    const { name } = rule;
+    const { name, category } = rule;
+
     if (rule.languages.length === 0) problems.push(`${name}: no languages`);
     for (const lang of rule.languages) {
       if (!(langs as string[]).includes(lang)) problems.push(`${name}: unknown language ${lang}`);
     }
+
     const sections = rule.text
       .split("\n")
       .flatMap((line) => /^## ([a-z]{2})$/.exec(line)?.[1] ?? []);
@@ -430,7 +427,6 @@ export function check(model: Model): string[] {
       .sort();
     if (others.length > 0) problems.push(`${name}: mentions other rules ${others.join(" ")}`);
 
-    const { category } = rule;
     if (!model.categories.includes(category)) {
       problems.push(`${name}: category ${category || "is missing"} is not in categories.md`);
     }
@@ -454,80 +450,19 @@ export function check(model: Model): string[] {
   return problems;
 }
 
-const usage = `Usage: rules.ts <ru|en> [<selector>...]
-       rules.ts <ru|en> --notes [<selector>...]
-       rules.ts <ru|en> --groups [<selector>...]
-       rules.ts <ru|en> --ids [<selector>...]
-       rules.ts <ru|en> --checks [<selector>...]
-       rules.ts --check
-
-A selector is a preset name (recommended, light, prose, slop, full) or a rule ID such as GR003.
-`;
-
-function fail(message: string): never {
-  process.stderr.write(message);
-  process.exit(2);
-}
-
 function main(args: string[]): void {
-  const model = loadModel(join(dirname(fileURLToPath(import.meta.url)), ".."));
-
-  if (args[0] === "--check") {
-    if (args.length !== 1) fail(usage);
-    const problems = check(model);
-    for (const problem of problems) console.log(problem);
-    process.exitCode = problems.length > 0 ? 1 : 0;
-    return;
+  if (args.length !== 1 || args[0] !== "--check") {
+    process.stderr.write("Usage: rules.ts --check\n");
+    process.exit(2);
   }
 
-  const [lang, ...rest] = args;
-  if (lang !== "ru" && lang !== "en") fail(usage);
-
-  const modes = ["--notes", "--groups", "--ids", "--checks"];
-  let mode = "rules";
-  if (rest[0]?.startsWith("-")) {
-    if (!modes.includes(rest[0])) fail(usage);
-    mode = rest.shift() ?? mode;
-  }
-
-  const selectors = rest.length > 0 ? rest : ["recommended"];
-  for (const selector of selectors) {
-    if (!isRule(model, selector) && !isPreset(model, selector)) {
-      fail(`Unknown selector: ${selector}\n`);
-    }
-  }
-
-  const planned = plan(model, lang, selectors);
-  const asLines = (lines: string[]) => lines.map((line) => `${line}\n`).join("");
-  let out: string;
-  switch (mode) {
-    case "--notes":
-      out = notes(model, selectors);
-      break;
-    case "--groups":
-      out = asLines(groupLines(planned));
-      break;
-    case "--ids":
-      out = asLines(planned.kept);
-      break;
-    case "--checks":
-      out = asLines(checkLines(model, lang, planned));
-      break;
-    default:
-      out =
-        notes(model, selectors) +
-        planned.kept
-          .flatMap((id) => model.rules.get(id) ?? [])
-          .map((rule) => `${ruleText(rule, lang)}\n\n`)
-          .join("");
-  }
-  if (planned.skipped.length > 0) {
-    out += `Not checked for ${lang}: ${planned.skipped.join(" ")}\n`;
-  }
-  process.stdout.write(out);
+  const problems = check(loadModel(dirname(dirname(fileURLToPath(import.meta.url)))));
+  for (const problem of problems) console.log(problem);
+  process.exitCode = problems.length > 0 ? 1 : 0;
 }
 
 // Runs only as a script, so tests can import the functions. The skill directory is
 // often a symlink, hence realpath.
-const self = fileURLToPath(import.meta.url);
-if (process.argv[1] && realpathSync(process.argv[1]) === self) main(process.argv.slice(2));
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main(process.argv.slice(2));
+}

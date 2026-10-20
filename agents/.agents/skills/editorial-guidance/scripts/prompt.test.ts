@@ -9,7 +9,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { checkResults, guessLang, projectGlossary } from "./prompt.ts";
+import { checksFor } from "./checks.ts";
+import { checkResults, contextFiles, type Doc, guessLang, projectGlossary } from "./prompt.ts";
 import type { Model, Rule } from "./rules.ts";
 
 function rule(id: string, checks: string[]): Rule {
@@ -24,8 +25,10 @@ const model: Model = {
     ["ST003", rule("ST003", ["links"])],
   ]),
   categories: ["grammar"],
-  checks: () => [],
+  checks: checksFor,
 };
+
+const doc = (text: string, fromChat = false): Doc => ({ file: "/t/a.md", text, lang: "ru", fromChat });
 
 test("the language follows the letters of the prose, code aside", () => {
   assert.equal(guessLang("Текст про `SomeLongClassName` и API.\n"), "ru");
@@ -33,19 +36,19 @@ test("the language follows the letters of the prose, code aside", () => {
 });
 
 test("check results name their rules and list clean checks in one line", () => {
-  const out = checkResults(model, "ru", ["GR003", "GR001"], "Раз — два.\n", "/t/a.md", false, "/s");
+  const out = checkResults(model, ["GR003", "GR001"], doc("Раз — два.\n"));
   assert.match(out, /## connectors \(GR003\)\n\n.+\n\n1: …Раз — два\.…/);
   assert.match(out, /Без находок: ellipsis \(GR001\)\.$/);
 });
 
 test("chat text skips the checks that need a real file", () => {
-  assert.equal(checkResults(model, "ru", ["ST003"], "[a](gone.md)\n", "/t/a.md", true, "/s"), "");
+  assert.equal(checkResults(model, ["ST003"], doc("[a](gone.md)\n", true)), "");
 });
 
 test("a long check output is cut with a pointer to the full one", () => {
   const text = Array.from({ length: 45 }, (_, i) => `Строка ${i} — тире.`).join("\n");
-  const out = checkResults(model, "ru", ["GR003"], text, "/t/a.md", false, "/s");
-  assert.match(out, /…ещё 5 строк\. Весь вывод: `\/s\/scripts\/checks\.ts connectors \/t\/a\.md`/);
+  const out = checkResults(model, ["GR003"], doc(text));
+  assert.match(out, /…ещё 5 строк\. Весь вывод: `\/.+\/scripts\/checks\.ts connectors \/t\/a\.md`/);
 });
 
 test("the project glossary comes from the nearest instructions file that names one", () => {
@@ -66,4 +69,12 @@ test("the project glossary comes from the nearest instructions file that names o
   } finally {
     rmSync(root, { recursive: true });
   }
+});
+
+test("the glossary goes only to the single flow on Russian text", () => {
+  const names = (lang: "ru" | "en", flow: "single" | "parallel", fix: boolean) =>
+    contextFiles(lang, flow, fix, ["/g/a.md"]).map((file) => file.replace(/^.*\/references\//, ""));
+  assert.deepEqual(names("ru", "single", true), ["flows/single.md", "report.md", "fix.md", "/g/a.md"]);
+  assert.deepEqual(names("en", "single", false), ["flows/single.md", "report.md"]);
+  assert.deepEqual(names("ru", "parallel", false), ["flows/parallel.md", "report.md", "subagent-prompt.md"]);
 });
