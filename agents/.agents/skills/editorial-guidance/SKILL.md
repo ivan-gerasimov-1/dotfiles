@@ -91,7 +91,7 @@ metadata:
 
    | Флоу | Вызовы |
    |---|---|
-   | single | `scripts/context.sh <ru\|en> single [--fix]` и `scripts/rules.ts <ru\|en> <селекторы>` |
-   | parallel | `scripts/context.sh <ru\|en> parallel [--fix]`, `scripts/rules.ts <ru\|en> --notes <селекторы>` и `scripts/rules.ts <ru\|en> --groups <селекторы>` |
+   | single | `scripts/context.ts <ru\|en> single [--fix]` и `scripts/rules.ts <ru\|en> <селекторы>` |
+   | parallel | `scripts/context.ts <ru\|en> parallel [--fix]`, `scripts/rules.ts <ru\|en> --notes <селекторы>` и `scripts/rules.ts <ru\|en> --groups <селекторы>` |
 
 3. Действуй по выведенному флоу.

@@ -181,7 +181,7 @@ function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Pr
   const args = [
     "-p", `/editorial-guidance ${fixture.selectors.join(" ")} ${fixture.body}`,
     "--allowedTools",
-    "Read Glob Grep Skill Write Bash(mktemp*) Bash(*/scripts/rules.ts *) Bash(*/scripts/context.sh *) Bash(*/scripts/checks.ts *)",
+    "Read Glob Grep Skill Write Bash(mktemp*) Bash(*/scripts/rules.ts *) Bash(*/scripts/context.ts *) Bash(*/scripts/checks.ts *)",
     "--disallowedTools", "Edit",
     "--append-system-prompt", SYSTEM_PROMPT,
     "--output-format", "json",
