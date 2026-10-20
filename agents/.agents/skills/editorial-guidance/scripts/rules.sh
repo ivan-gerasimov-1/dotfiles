@@ -39,7 +39,7 @@ Usage: rules.sh <ru|en> [<selector>...]
        rules.sh <ru|en> --checks [<selector>...]
        rules.sh --check
 
-A selector is a preset name (recommended, prose, slop, fragment, full) or a rule ID such as GR003.
+A selector is a preset name (recommended, light, prose, slop, full) or a rule ID such as GR003.
 EOF
   exit 2
 }

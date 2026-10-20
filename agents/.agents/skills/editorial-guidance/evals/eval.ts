@@ -7,9 +7,9 @@
  *
  * A fixture lives in fixtures/<RULE>/<name>.md. Its frontmatter says whether
  * the rule must fire (`expect: flag`) or stay silent (`expect: pass`).
- * An optional `not: PA003, SU001` lists rules that must stay silent too, which
+ * An optional `not: PA001, SU001` lists rules that must stay silent too, which
  * checks that an overlapping finding goes to its owner.
- * An optional `selectors: fragment WO002` replaces the default `fragment` preset,
+ * An optional `selectors: slop CA002` replaces the default `recommended` preset,
  * for a fixture whose competing rule is not in that preset.
  * Only these rules are scored. Other rules a fixture fires are listed as extra,
  * and a fired `not` rule is marked with `!`.
@@ -85,7 +85,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, "fixtures");
 const RESULTS = join(HERE, "results");
 
-const DEFAULT_SELECTORS = ["fragment"];
+const DEFAULT_SELECTORS = ["recommended"];
 
 const SYSTEM_PROMPT =
   "Eval run. End the reply with one line: " +

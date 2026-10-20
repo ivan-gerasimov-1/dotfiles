@@ -6,7 +6,7 @@ description: >
   слоп-маркеры, кальки, машинную каденцию. Правила языка покрывают термины
   и англицизмы, грамматику и читаемость. Вызов
   `/editorial-guidance [пресет|номер правила…] [--flow single|parallel] [--fix] [файл или текст]`.
-  Пресеты recommended, prose, slop, fragment и full. Флоу single проверяет текст
+  Пресеты recommended, light, prose, slop и full. Флоу single проверяет текст
   одним агентом и действует по умолчанию, parallel запускает сабагентов по
   группам. Без --fix выдаёт отчёт с находками и ничего не правит, с --fix
   правит текст. Без селекторов действует пресет recommended.
@@ -58,10 +58,10 @@ metadata:
 
 | Пресет | Назначение |
 |---|---|
-| [`recommended`](references/presets/recommended.md) | набор по умолчанию |
+| [`recommended`](references/presets/recommended.md) | набор по умолчанию для читаемости, для фрагмента и для большого текста |
+| [`light`](references/presets/light.md) | быстрая проверка: правила с механической проверкой или списком маркеров |
 | [`prose`](references/presets/prose.md) | правила языка |
 | [`slop`](references/presets/slop.md) | правила слопа с оценкой от 1 до 5 |
-| [`fragment`](references/presets/fragment.md) | правила, которые проверяются на нескольких предложениях |
 | [`full`](references/presets/full.md) | все правила |
 
 **`--flow`** решает, как идёт проверка. По умолчанию действует `single`.

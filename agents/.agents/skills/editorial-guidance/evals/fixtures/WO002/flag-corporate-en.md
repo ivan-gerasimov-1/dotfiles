@@ -1,6 +1,5 @@
 ---
 expect: flag
-selectors: fragment WO002
 not: ST001, WO003
 note: английский канцелярит «in order to», «at this point in time» из раздела en идёт по WO002
 ---

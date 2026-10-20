@@ -72,7 +72,7 @@
 | `/editorial-guidance slop` | отчёт по слопу с оценкой от 1 до 5 |
 | `/editorial-guidance full --flow parallel --fix` | правка по всем правилам, сабагенты по группам |
 | `/editorial-guidance GR003 CA001` | отчёт только по двум правилам |
-| `/editorial-guidance fragment <текст>` | отчёт по правилам для короткого текста |
+| `/editorial-guidance light <текст>` | быстрый отчёт по механическим правилам |
 
 ## Eval
 
