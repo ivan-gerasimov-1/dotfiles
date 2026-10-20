@@ -10,10 +10,12 @@ delivery = "herdr"
 [theme]
 name = "gruvbox"
 
+[terminal]
+kitty_graphics = true
+
 [experimental]
 pane_history = true
 switch_ascii_input_source_in_prefix = true
-kitty_graphics = true
 
 [keys]
 prefix = "cmd+k"
