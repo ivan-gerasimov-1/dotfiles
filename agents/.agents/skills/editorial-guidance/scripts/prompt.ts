@@ -78,7 +78,7 @@ export function contextFiles(lang: Lang, flow: Flow, fix: boolean, glossary: str
   return [
     join(refs, "flows", `${flow}.md`),
     join(refs, "report.md"),
-    ...(fix ? [join(refs, "fix.md")] : []),
+    ...(fix ? [join(refs, "fix", "common.md"), join(refs, "fix", `${flow}.md`)] : []),
     ...(flow === "parallel" ? [join(refs, "subagent-prompt.md")] : []),
     ...(flow === "single" && lang === "ru" ? glossary : []),
   ];

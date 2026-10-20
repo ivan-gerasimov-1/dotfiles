@@ -26,7 +26,8 @@
 - [categories.md](references/categories.md) перечисляет категории правил, то есть
   виды дефектов. Категория описательная, скрипты по ней правила не выбирают.
 - [flows/](references/flows/) отвечает на вопрос «как проверять», по файлу на флоу.
-- [fix.md](references/fix.md) задаёт, как править с `--fix`.
+- [fix/](references/fix/) задаёт, как править с `--fix`: общие правила в `common.md`
+  и порядок правки по файлу на флоу.
 - [report.md](references/report.md) содержит общий шаблон отчёта.
 - [subagent-prompt.md](references/subagent-prompt.md) содержит задание сабагенту
   группы во флоу parallel.

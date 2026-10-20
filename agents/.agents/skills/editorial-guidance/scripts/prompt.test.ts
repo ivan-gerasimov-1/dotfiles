@@ -57,7 +57,19 @@ test("a long check output is cut with a pointer to the full one", () => {
 test("the glossary goes only to the single flow on Russian text", () => {
   const names = (lang: "ru" | "en", flow: "single" | "parallel", fix: boolean) =>
     contextFiles(lang, flow, fix, ["/g/a.md"]).map((file) => file.replace(/^.*\/references\//, ""));
-  assert.deepEqual(names("ru", "single", true), ["flows/single.md", "report.md", "fix.md", "/g/a.md"]);
+  assert.deepEqual(names("ru", "single", true), [
+    "flows/single.md",
+    "report.md",
+    "fix/common.md",
+    "fix/single.md",
+    "/g/a.md",
+  ]);
   assert.deepEqual(names("en", "single", false), ["flows/single.md", "report.md"]);
-  assert.deepEqual(names("ru", "parallel", false), ["flows/parallel.md", "report.md", "subagent-prompt.md"]);
+  assert.deepEqual(names("ru", "parallel", true), [
+    "flows/parallel.md",
+    "report.md",
+    "fix/common.md",
+    "fix/parallel.md",
+    "subagent-prompt.md",
+  ]);
 });
