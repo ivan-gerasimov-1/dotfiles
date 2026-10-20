@@ -33,7 +33,8 @@
       "show_avatar": false,
     },
     "inline_blame": {
-      "enabled": false,
+      "location": "status_bar",
+      "enabled": true,
     },
   },
   "agent": {
@@ -42,6 +43,7 @@
     "model_parameters": [],
   },
   "git_panel": {
+    "folder_indicator": "chevron",
     "show_count_badge": false,
     "diff_stats": true,
     "file_icons": false,
@@ -51,14 +53,13 @@
     "status_style": "label_color",
     "default_width": 300.0,
     "dock": "right",
-    "folder_icons": false,
     "tree_view": true,
-    "button": false,
+    "button": true,
   },
   "outline_panel": {
+    "folder_indicator": "chevron",
     "auto_reveal_entries": true,
     "indent_size": 20.0,
-    "folder_icons": false,
     "file_icons": false,
     "button": false,
   },
@@ -102,6 +103,7 @@
     "active_language_button": false,
   },
   "project_panel": {
+    "folder_indicator": "chevron",
     "sort_order": "default",
     "sort_mode": "directories_first",
     "scrollbar": {
@@ -120,9 +122,8 @@
     "bold_folder_labels": false,
     "starts_open": false,
     "auto_reveal_entries": true,
-    "indent_size": 6.0,
+    "indent_size": 4.0,
     "git_status": true,
-    "folder_icons": false,
     "file_icons": false,
     "entry_spacing": "standard",
     "hide_gitignore": false,
@@ -131,9 +132,6 @@
   },
   "file_finder": {
     "file_icons": false,
-  },
-  "message_editor": {
-    "auto_replace_emoji_shortcode": false,
   },
   "middle_click_paste": false,
   "word_diff_enabled": true,
