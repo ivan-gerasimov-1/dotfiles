@@ -5,8 +5,11 @@
  */
 
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
-import { checkResults, guessLang } from "./prompt.ts";
+import { checkResults, guessLang, projectGlossary } from "./prompt.ts";
 import type { Model, Rule } from "./rules.ts";
 
 function rule(id: string, checks: string[]): Rule {
@@ -43,4 +46,24 @@ test("a long check output is cut with a pointer to the full one", () => {
   const text = Array.from({ length: 45 }, (_, i) => `Строка ${i} — тире.`).join("\n");
   const out = checkResults(model, "ru", ["GR003"], text, "/t/a.md", false, "/s");
   assert.match(out, /…ещё 5 строк\. Весь вывод: `\/s\/scripts\/checks\.ts connectors \/t\/a\.md`/);
+});
+
+test("the project glossary comes from the nearest instructions file that names one", () => {
+  const root = mkdtempSync(join(tmpdir(), "editorial-test-"));
+  try {
+    mkdirSync(join(root, "glossary"));
+    mkdirSync(join(root, "docs/deep"), { recursive: true });
+    writeFileSync(join(root, "AGENTS.md"), "# Repo\n\neditorial-guidance glossary: glossary/\n");
+    writeFileSync(join(root, "docs/CLAUDE.md"), "# Docs, no glossary line\n");
+    writeFileSync(join(root, "glossary/b.md"), "");
+    writeFileSync(join(root, "glossary/a.md"), "");
+    writeFileSync(join(root, "glossary/notes.txt"), "");
+    assert.deepEqual(projectGlossary([join(root, "docs/deep")]), [
+      join(root, "glossary/a.md"),
+      join(root, "glossary/b.md"),
+    ]);
+    assert.deepEqual(projectGlossary([tmpdir()]), []);
+  } finally {
+    rmSync(root, { recursive: true });
+  }
 });
