@@ -56,6 +56,8 @@ type Run = {
   found: Set<string> | null;
   cost: number;
   turns: number;
+  /** Tool calls the permission rules turned down, as "<tool>: <command or path>". */
+  denied: string[];
   reply: string;
 };
 
@@ -64,6 +66,7 @@ type Row = {
   ok: number;
   total: number;
   broken: number;
+  denied: number;
   extra: string[];
 };
 
@@ -169,14 +172,17 @@ function loadFixtures(selectors: string[]): Fixture[] {
 }
 
 /**
- * Runs the skill once on a fixture with read-only tools.
+ * Runs the skill once on a fixture. Edit is off, so the run cannot change files. Write
+ * and mktemp stay on, because the skill saves chat text to a temp file for checks.sh.
+ * TMPDIR points at the run directory, so those temp files go away with it.
  * Stdin is closed right away, otherwise claude waits for it before it starts.
  */
 function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Promise<Run> {
   const args = [
     "-p", `/editorial-guidance ${fixture.selectors.join(" ")} ${fixture.body}`,
-    "--allowedTools", "Read Glob Grep Skill Bash(*/scripts/rules.sh *) Bash(*/scripts/context.sh *)",
-    "--disallowedTools", "Edit Write",
+    "--allowedTools",
+    "Read Glob Grep Skill Write Bash(mktemp*) Bash(*/scripts/rules.sh *) Bash(*/scripts/context.sh *) Bash(*/scripts/checks.sh *)",
+    "--disallowedTools", "Edit",
     "--append-system-prompt", SYSTEM_PROMPT,
     "--output-format", "json",
   ];
@@ -186,7 +192,7 @@ function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Pr
   }
 
   return new Promise((resolve) => {
-    const options = { cwd, maxBuffer: 16 * 1024 * 1024 };
+    const options = { cwd, env: { ...process.env, TMPDIR: cwd }, maxBuffer: 16 * 1024 * 1024 };
 
     const child = execFile("claude", args, options, (_error, stdout, stderr) => {
       resolve(parseReply(stdout, stderr));
@@ -199,23 +205,38 @@ function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Pr
 function parseReply(stdout: string, stderr: string): Run {
   const data = parseJson(stdout);
   if (!isRecord(data)) {
-    return { found: null, cost: 0, turns: 0, reply: stdout + stderr };
+    return { found: null, cost: 0, turns: 0, denied: [], reply: stdout + stderr };
   }
 
   const reply = typeof data.result === "string" ? data.result : "";
   const cost = typeof data.total_cost_usd === "number" ? data.total_cost_usd : 0;
   const turns = typeof data.num_turns === "number" ? data.num_turns : 0;
+  const denials = Array.isArray(data.permission_denials) ? data.permission_denials : [];
+  const denied = denials.map(describeDenial);
 
   const foundLines = [...reply.matchAll(/^FOUND:\s*(.*)$/gm)];
   const lastLine = foundLines.at(-1)?.[1];
 
   if (lastLine === undefined) {
-    return { found: null, cost, turns, reply };
+    return { found: null, cost, turns, denied, reply };
   }
 
   const ids = lastLine.match(/\b[A-Z]{2}\d{3}\b/g) ?? [];
 
-  return { found: new Set(ids), cost, turns, reply };
+  return { found: new Set(ids), cost, turns, denied, reply };
+}
+
+/** One entry of `permission_denials` as "<tool>: <command or path>". */
+function describeDenial(entry: unknown): string {
+  if (!isRecord(entry)) {
+    return String(entry);
+  }
+
+  const tool = typeof entry.tool_name === "string" ? entry.tool_name : "?";
+  const input = isRecord(entry.tool_input) ? entry.tool_input : {};
+  const target = input.command ?? input.file_path ?? JSON.stringify(input);
+
+  return `${tool}: ${String(target)}`;
 }
 
 function parseJson(text: string): unknown {
@@ -274,6 +295,7 @@ function scoreFixture(fixture: Fixture, runs: Run[]): Row {
   }).length;
 
   const broken = runs.filter((run) => run.found === null).length;
+  const denied = runs.reduce((sum, run) => sum + run.denied.length, 0);
 
   const allFound = new Set(runs.flatMap((run) => [...(run.found ?? [])]));
   const extra = [...allFound]
@@ -281,7 +303,7 @@ function scoreFixture(fixture: Fixture, runs: Run[]): Row {
     .sort()
     .map((id) => (fixture.not.includes(id) ? `${id}!` : id));
 
-  return { fixture, ok, total: runs.length, broken, extra };
+  return { fixture, ok, total: runs.length, broken, denied, extra };
 }
 
 function statsByRule(rows: Row[]): Map<string, RuleStats> {
@@ -319,6 +341,9 @@ function printFixtures(rows: Row[]) {
     let tail = row.extra.join(", ");
     if (row.broken > 0) {
       tail += `  [${row.broken} without FOUND]`;
+    }
+    if (row.denied > 0) {
+      tail += `  [${row.denied} denied]`;
     }
 
     console.log(`${key.padEnd(32)} ${row.fixture.expect.padEnd(6)} ${score}  ${tail}`);
@@ -387,7 +412,9 @@ async function main() {
     }
 
     const file = `${fixture.rule}-${fixture.name}-${attempt + 1}.md`;
-    writeFileSync(join(outDir, file), run.reply);
+    const denials = run.denied.map((line) => `- ${line}`).join("\n");
+    const text = denials ? `${run.reply}\n\n---\nDenied:\n${denials}\n` : run.reply;
+    writeFileSync(join(outDir, file), text);
 
     runsByFixture.set(fixture, [...(runsByFixture.get(fixture) ?? []), run]);
   });
@@ -399,11 +426,13 @@ async function main() {
 
   const cost = runs.reduce((sum, run) => sum + run.cost, 0);
   const turns = runs.reduce((sum, run) => sum + run.turns, 0);
+  const denied = runs.reduce((sum, run) => sum + run.denied.length, 0);
 
   const perCall = (total: number) => (total / runs.length).toFixed(2);
 
   console.log();
   console.log(`cost $${cost.toFixed(2)} ($${perCall(cost)} per call), ${perCall(turns)} turns per call`);
+  console.log(`${denied} tool calls denied${denied > 0 ? ", listed at the end of each reply" : ""}`);
   console.log(`replies in ${outDir}`);
 }
 
