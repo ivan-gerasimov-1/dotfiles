@@ -3,7 +3,7 @@ id: prose
 title: "Правила языка"
 groups:
   - title: "Слова и термины"
-    rules: [TE001, TE002, TE003, GR002, TE004, WO004]
+    rules: [TE001, TE002, TE003, GR002, TE004, WO001, WO004]
   - title: "Грамматика и построение предложений"
     rules: [GR001, ST001, GR003, WO003, WO002]
   - title: "Читаемость и сложность"
