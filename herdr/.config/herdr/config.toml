@@ -43,6 +43,8 @@ rename_tab = "cmd+r"
 rename_workspace = "cmd+shift+r"
 rename_pane = "cmd+alt+r"
 
+clear_pane = ["prefix+k", "prefix+л"]
+
 [[keys.command]]
 key = "cmd+t"
 type = "shell"
@@ -69,12 +71,6 @@ type = "shell"
 command = "/opt/homebrew/bin/herdr pane resize --current --direction down --amount 0.05"
 
 [[keys.command]]
-key = ["prefix+k", "prefix+л"]
-type = "shell"
-command = "python3 ${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/clear-pane.py"
-
-[[keys.command]]
 key = "cmd+w"
 type = "shell"
 command = "python3 ${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/cmd-w.py"
-
