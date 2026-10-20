@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Mechanical checks for the editorial-guidance rules.
 # Usage: checks.sh <check> file.md
+#        checks.sh --list <ru|en>   the checks that work for text in the language
 # Empty output means no findings. Exit code is 0 either way; 2 means bad usage.
+# Rules name their checks in the `checks` field of their frontmatter.
 set -euo pipefail
 # Byte-wise sort/uniq: in a UTF-8 locale macOS uniq treats different Cyrillic words as equal.
 # Perl decodes UTF-8 itself (-CSD -Mutf8), so the C locale does not affect it.
@@ -10,26 +12,38 @@ export LC_ALL=C
 usage() {
   cat >&2 <<'EOF'
 Usage: checks.sh <check> file.md
+       checks.sh --list <ru|en>
 
-prose preset checks:
-  hybrids          Latin glued to Cyrillic (TE002, TE003)
-  latin            Latin words in prose with counts and lines (TE001, TE002, TE004)
-  variants         Concepts written in more than one variant (TE004)
-  connectors       Dash and semicolon inside prose and prose table cells (GR003)
-  ellipsis         Ellipsis outside tables (GR001)
-  long-sentences   Sentences over 25 words (ST001)
-  file-lines       file:line references in prose and inline code (ST003)
-  links            Relative links to files or directories that do not exist (ST003)
+Checks, (ru) marks the ones that read only Russian text:
+  hybrids          Latin glued to Cyrillic (ru)
+  latin            Latin words in prose with counts and lines (ru)
+  variants         Concepts written in more than one variant (ru)
+  connectors       Dash and semicolon inside prose and prose table cells
+  ellipsis         Ellipsis outside tables
+  long-sentences   Sentences over 25 words
+  file-lines       file:line references in prose and inline code
+  links            Relative links to files or directories that do not exist
+  contrast         «X, а не Y» and «не X, а Y», across line breaks (ru)
 
-slop preset checks:
-  contrast         «X, а не Y» and «не X, а Y», across line breaks (CA001)
+Helpers:
   words            Prose word count for per-1000-words thresholds
-
-Helper:
   prose            The prose the line-based checks read
 EOF
   exit 2
 }
+
+all_checks="hybrids latin variants connectors ellipsis long-sentences file-lines links contrast"
+ru_only="hybrids latin variants contrast"
+
+if [ "${1:-}" = --list ]; then
+  [ $# -eq 2 ] || usage
+  case $2 in
+    ru) tr ' ' '\n' <<< "$all_checks" ;;
+    en) tr ' ' '\n' <<< "$all_checks" | grep -vxF -f <(tr ' ' '\n' <<< "$ru_only") ;;
+    *) usage ;;
+  esac
+  exit
+fi
 
 [ $# -eq 2 ] || usage
 check=$1
