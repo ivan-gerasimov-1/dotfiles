@@ -148,7 +148,10 @@ function fmGroups(fm: string[]): Preset["groups"] {
   return groups;
 }
 
-/** File body without frontmatter, HTML comments and blank lines at either end. */
+/**
+ * File body without frontmatter, HTML comments and blank lines at either end.
+ * Blank lines in a row print as one, so a dropped comment leaves no gap.
+ */
 export function body(text: string): string {
   const lines = text.split("\n");
   if (lines.at(-1) === "") lines.pop();
@@ -174,7 +177,8 @@ export function body(text: string): string {
       if (out.length > 0) blanks++;
       return;
     }
-    for (; blanks > 0; blanks--) out.push("");
+    if (blanks > 0) out.push("");
+    blanks = 0;
     out.push(line);
   });
   return out.join("\n");

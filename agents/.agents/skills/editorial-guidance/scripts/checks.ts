@@ -52,6 +52,22 @@ const allChecks = [
 ];
 const ruOnly = ["hybrids", "latin", "variants", "contrast"];
 
+/** What a check prints, for the agent that reads its output. */
+export const descriptions: Record<string, string> = {
+  hybrids: "Слова, где латиница склеена с кириллицей.",
+  latin:
+    "Латинские слова в прозе: число вхождений, слово, строки. По числу видно и имя кода, записанное по-разному.",
+  variants:
+    "Понятия, записанные больше чем одним вариантом. Скрипт знает только частые пары, остальные варианты ищи чтением.",
+  connectors:
+    "Тире и точки с запятой в прозе и в прозаических ячейках таблиц. Заголовки, пункты «A vs B», заголовок в подбор с тире после него, точку с запятой в конце пункта списка и ячейки короче шести слов скрипт пропускает. Двоеточия он не ищет, их находят чтением.",
+  ellipsis: "Многоточия вне таблиц.",
+  "long-sentences": "Предложения длиннее 25 слов.",
+  "file-lines": "Ссылки `file:line` в прозе и во встроенном коде.",
+  links: "Относительные ссылки на файлы и каталоги, которых нет. Якоря скрипт не проверяет.",
+  contrast: "Конструкции «X, а не Y» и «не X, а Y», в том числе разорванные переносом строки.",
+};
+
 /** The checks that work for text in the language. */
 export function checksFor(lang: Lang): string[] {
   return lang === "ru" ? allChecks : allChecks.filter((check) => !ruOnly.includes(check));

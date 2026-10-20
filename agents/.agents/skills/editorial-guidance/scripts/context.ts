@@ -36,6 +36,21 @@ export function contextFiles(
   ];
 }
 
+/** The context texts, each followed by a blank line. */
+export function context(
+  refs: string,
+  lang: "ru" | "en",
+  flow: "single" | "parallel",
+  fix: boolean,
+): string {
+  const glossary = readdirSync(join(refs, "glossary"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
+  return contextFiles(lang, flow, fix, glossary)
+    .map((file) => `${body(readFileSync(join(refs, file), "utf8"))}\n\n`)
+    .join("");
+}
+
 function main(args: string[]): void {
   const [lang, flow, fix] = args;
   if (
@@ -48,14 +63,7 @@ function main(args: string[]): void {
     process.exit(2);
   }
 
-  const refs = join(dirname(self), "../references");
-  const glossary = readdirSync(join(refs, "glossary"))
-    .filter((file) => file.endsWith(".md"))
-    .sort();
-  const out = contextFiles(lang, flow, fix === "--fix", glossary)
-    .map((file) => `${body(readFileSync(join(refs, file), "utf8"))}\n\n`)
-    .join("");
-  process.stdout.write(out);
+  process.stdout.write(context(join(dirname(self), "../references"), lang, flow, fix === "--fix"));
 }
 
 // Runs only as a script, so tests can import the functions. The skill directory is
