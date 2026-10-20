@@ -7,7 +7,7 @@ groups:
   - title: "Слова и термины"
     rules: [TE001, TE002, TE003, TE004, GR002, WO001, WO004]
   - title: "Предложения"
-    rules: [GR001, GR003, ST001, WO003, CA001]
+    rules: [GR001, GR003, GR004, ST001, WO003, CA001]
   - title: "Списки и таблицы"
     rules: [ST002, ST004]
 ---
