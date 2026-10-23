@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { checksFor } from "./checks.ts";
-import { checkResults, contextFiles, type Doc, guessLang } from "./prompt.ts";
+import { checkResults, contextFiles, type Doc, glossaries, guessLang } from "./prompt.ts";
 import type { Model, Rule } from "./rules.ts";
 
 function rule(id: string, checks: string[]): Rule {
@@ -55,23 +55,33 @@ test("a long check output is cut with a pointer to the full one", () => {
   assert.match(out, /…ещё 5 строк\. Весь вывод: `\/.+\/scripts\/checks\.ts connectors \/t\/a\.md`/);
 });
 
-test("the glossary goes only to the single flow on Russian text", () => {
-  const names = (lang: "ru" | "en", flow: "single" | "parallel", fix: boolean) =>
-    contextFiles(lang, flow, fix, ["/g/a.md"]).map((file) => file.replace(/^.*\/references\//, ""));
-  assert.deepEqual(names("ru", "single", true), [
+test("what is not checked goes only to the single flow", () => {
+  const names = (flow: "single" | "parallel", fix: boolean) =>
+    contextFiles(flow, fix).map((file) => file.replace(/^.*\/references\//, ""));
+  assert.deepEqual(names("single", true), [
     "flows/single.md",
     "report.md",
     "fix/common.md",
     "fix/single.md",
     "scope.md",
-    "/g/a.md",
   ]);
-  assert.deepEqual(names("en", "single", false), ["flows/single.md", "report.md", "scope.md"]);
-  assert.deepEqual(names("ru", "parallel", true), [
+  assert.deepEqual(names("single", false), ["flows/single.md", "report.md", "scope.md"]);
+  assert.deepEqual(names("parallel", true), [
     "flows/parallel.md",
     "report.md",
     "fix/common.md",
     "fix/parallel.md",
     "subagent-prompt.md",
   ]);
+});
+
+test("the glossary goes only with the rules that read it, cut to the text", () => {
+  const reader = { ...rule("TE001", []), glossary: true };
+  assert.deepEqual(glossaries([rule("GR003", [])], doc("Деплой в пятницу.\n")), []);
+
+  const out = glossaries([reader], doc("Деплой в пятницу, PR открыт.\n")).join("\n\n");
+  assert.match(out, /деплой/);
+  assert.match(out, /PR/);
+  assert.doesNotMatch(out, /пайплайн —/);
+  assert.doesNotMatch(out, /## Заменять/);
 });

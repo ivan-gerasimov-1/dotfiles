@@ -17,6 +17,7 @@ import {
   latin,
   links,
   longSentences,
+  mentions,
   prose,
   repeatedConnectors,
   words,
@@ -55,6 +56,21 @@ test("latin counts words longer than two letters, most frequent first", () => {
     "   1 PD-123 (2)",
     "   1 order (1)",
   ]);
+});
+
+test("latin skips link targets and the kept terms of the glossary, case aside", () => {
+  const text = "См. [план](docs/plan.md) и <https://example.com/page>, API и Snapshot, Order.\n";
+  assert.deepEqual(latin(text, ["api", "snapshot"]), ["   1 Order (1)"]);
+});
+
+test("mentions finds a term in any form, inside inline code too, but not inside a word", () => {
+  const mentioned = mentions("Скиллы и `DTO` здесь.\n```\nпайплайн\n```\n");
+  assert.equal(mentioned("скилл"), true);
+  assert.equal(mentioned("DTO"), true);
+  assert.equal(mentioned("пайплайн"), false);
+  assert.equal(mentioned("TO"), false);
+  assert.equal(mentions("Сервис деплоится через Jenkins.\n")("деплой"), true);
+  assert.equal(mentions("Сервис задеплоен.\n")("задеплоить"), true);
 });
 
 test("glossary finds terms in any case, whole words only, code aside", () => {

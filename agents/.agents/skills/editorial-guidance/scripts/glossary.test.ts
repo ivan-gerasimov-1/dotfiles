@@ -9,7 +9,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { projectGlossary, replacements } from "./glossary.ts";
+import { entryTerms, excerpt, keptTerms, projectGlossary, replacements } from "./glossary.ts";
 
 test("the project glossary comes from the nearest instructions file that names one", () => {
   const root = mkdtempSync(join(tmpdir(), "editorial-test-"));
@@ -51,4 +51,74 @@ test("replacements read the «Заменять» table, terms split and notes in
     { terms: ["бэк", "backend"], replacement: "«бэкенд»" },
     { terms: ["compile-time", "runtime"], replacement: "«на этапе компиляции»" },
   ]);
+});
+
+test("an entry names its head terms, the bracketed ones and the forbidden translations", () => {
+  assert.deepEqual(entryTerms("- скилл / скиллы (SKILL.md) — пакет. Не переводить как «навык»."), [
+    "скилл",
+    "скиллы",
+    "SKILL.md",
+    "навык",
+  ]);
+  assert.deepEqual(entryTerms("- **Аббревиатуры:** DTO, API. Не переводятся."), ["DTO", "API"]);
+  assert.deepEqual(entryTerms("| бэк, backend (слой) | «бэкенд» |"), ["бэк", "backend"]);
+  assert.deepEqual(entryTerms("- **Типы:** `Record<K, V>`, `src/a.ts`."), ["Record<K, V>", "src/a.ts"]);
+});
+
+test("the excerpt keeps mentioned entries and drops sections left empty", () => {
+  const text = [
+    "# Глоссарий",
+    "",
+    "Не правится.",
+    "",
+    "## Не переводить",
+    "",
+    "### Разработка",
+    "",
+    "- деплой — термин.",
+    "- пайплайн — термин.",
+    "",
+    "### Роли",
+    "",
+    "- SDET — роль.",
+    "",
+    "## Заменять",
+    "",
+    "| Термин | Замена |",
+    "|---|---|",
+    "| owner | «владелец» |",
+    "| бэк | «бэкенд» |",
+    "",
+    "## Допустимые кальки",
+    "",
+    "Находкой не считаются.",
+    "",
+    "- «источник истины» (source of truth).",
+  ].join("\n");
+  const mentioned = (term: string) => ["деплой", "owner"].includes(term);
+  assert.equal(
+    excerpt(text, mentioned),
+    [
+      "# Глоссарий",
+      "",
+      "Не правится.",
+      "",
+      "## Не переводить",
+      "",
+      "### Разработка",
+      "",
+      "- деплой — термин.",
+      "",
+      "## Заменять",
+      "",
+      "| Термин | Замена |",
+      "|---|---|",
+      "| owner | «владелец» |",
+    ].join("\n"),
+  );
+});
+
+test("kept terms come from the lists, not from the «Заменять» table", () => {
+  const text = "## Не переводить\n- namespace — термин.\n## Заменять\n| owner | «владелец» |\n- runtime — нет.\n";
+  assert.deepEqual(keptTerms(text), ["namespace"]);
 });

@@ -14,7 +14,7 @@
 import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
-import { commonGlossary, projectGlossary, type Replacement, replacements } from "./glossary.ts";
+import { commonGlossary, keptTerms, projectGlossary, type Replacement, replacements } from "./glossary.ts";
 
 export type Lang = "ru" | "en";
 
@@ -39,10 +39,11 @@ const checks: Record<string, Check> = {
     description: "Слова, где латиница склеена с кириллицей.",
   },
   latin: {
-    run: latin,
+    run: (text, _file, glossaries) =>
+      latin(text, glossaries.flatMap((path) => keptTerms(readFileSync(path, "utf8")))),
     langs: ["ru"],
     description:
-      "Латинские слова в прозе: число вхождений, слово, строки. По числу видно и имя кода, записанное по-разному.",
+      "Латинские слова в прозе: число вхождений, слово, строки. По числу видно и имя кода, записанное по-разному. Адреса ссылок и слова из списков глоссария, которые не переводятся, скрипт пропускает.",
   },
   glossary: {
     run: (text, _file, glossaries) =>
@@ -188,14 +189,19 @@ export function hybrids(text: string): string[] {
   );
 }
 
-/** "count word (lines)", most frequent first. */
-export function latin(text: string): string[] {
+/**
+ * "count word (lines)", most frequent first. Link targets and the kept terms of the
+ * glossaries are skipped, case aside.
+ */
+export function latin(text: string, kept: string[] = []): string[] {
   const pattern = new RegExp(`${start}([A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*)`, "gu");
+  const skip = new Set(kept.map((term) => term.toLowerCase()));
 
   const found = new Map<string, number[]>();
   for (const { n, text: line } of prose(text)) {
-    for (const [, name = ""] of line.matchAll(pattern)) {
-      if (name.length > 2) found.set(name, [...(found.get(name) ?? []), n]);
+    const words = line.replace(/\]\([^)]*\)/g, "]").replace(/<?https?:\/\/[^\s>)]+>?/g, "");
+    for (const [, name = ""] of words.matchAll(pattern)) {
+      if (name.length > 2 && !skip.has(name.toLowerCase())) found.set(name, [...(found.get(name) ?? []), n]);
     }
   }
 
@@ -220,6 +226,34 @@ function termWord(word: string): string {
   const ending = endings.find((ending) => word.endsWith(ending) && word.length - ending.length >= 3) ?? "";
   const stem = word.slice(0, word.length - ending.length);
   return `${escape(stem)}(?:${endings.join("|")})?`;
+}
+
+/**
+ * One word of a term to look for, looser than `termWord`: a Russian word matches any
+ * word that starts with its stem, so «деплой» finds «деплоится» too.
+ */
+function stemWord(term: string): string {
+  const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (!/[а-яё]$/i.test(term)) return `${escape(term)}(?:s|es)?${end}`;
+
+  const stem = term.replace(/(?:ться|тся|ить|ать|ять|еть)$/i, "").replace(/[аеёиоуыэюяйь]+$/i, "");
+  return `${escape(stem.length >= 3 ? stem : term)}${word}*`;
+}
+
+/**
+ * Whether the text mentions a term in any form, inline code and headings included.
+ * It errs towards a match: a glossary entry kept for nothing costs a line, a lost one
+ * a false finding.
+ */
+export function mentions(text: string): (term: string) => boolean {
+  const lines = proseRaw(text)
+    .map((line) => line.text)
+    .join("\n");
+  return (term) => {
+    const words = term.split(/\s+/).filter((word) => word !== "");
+    if (words.length === 0) return false;
+    return new RegExp(`${start}${words.map(stemWord).join("\\s+")}`, "iu").test(lines);
+  };
 }
 
 /** Terms of the glossary tables found in prose, each with its replacement. */

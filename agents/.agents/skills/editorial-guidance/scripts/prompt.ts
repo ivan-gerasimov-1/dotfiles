@@ -21,8 +21,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { describe, type Lang, prose, requiresFile, run, words } from "./checks.ts";
-import { commonGlossary, projectGlossary } from "./glossary.ts";
+import { describe, type Lang, mentions, prose, requiresFile, run, words } from "./checks.ts";
+import { commonGlossary, excerpt, projectGlossary } from "./glossary.ts";
 import {
   body,
   checkRules,
@@ -34,6 +34,7 @@ import {
   type Model,
   notes,
   plan,
+  type Rule,
   ruleText,
 } from "./rules.ts";
 
@@ -84,17 +85,34 @@ export function guessLang(text: string): Lang {
 }
 
 /**
- * Reference files a flow prints before presets and rules. What is not checked and the
- * glossary go only to the single flow, the glossary only on Russian text: in the
- * parallel flow subagents get them with their rules.
+ * Reference files a flow prints before the glossaries, presets and rules. What is not
+ * checked goes only to the single flow: in the parallel flow subagents get it with
+ * their rules.
  */
-export function contextFiles(lang: Lang, flow: Flow, fix: boolean, glossary: string[]): string[] {
+export function contextFiles(flow: Flow, fix: boolean): string[] {
   return [
     join(refs, "flows", `${flow}.md`),
     join(refs, "report.md"),
     ...(fix ? [join(refs, "fix", "common.md"), join(refs, "fix", `${flow}.md`)] : []),
     ...(flow === "parallel" ? [join(refs, "subagent-prompt.md")] : [join(refs, "scope.md")]),
-    ...(flow === "single" && lang === "ru" ? glossary : []),
+  ];
+}
+
+/**
+ * The glossaries for the rules that read them, cut to the terms the text mentions.
+ * The common glossary covers only Russian text. No such rules means no glossary.
+ */
+export function glossaries(rules: Rule[], doc: Doc): string[] {
+  if (!rules.some((rule) => rule.glossary)) return [];
+
+  const files = [...(doc.lang === "ru" ? commonGlossary() : []), ...doc.glossary];
+  const mentioned = mentions(doc.text);
+  const parts = files.map((file) => excerpt(readBody(file), mentioned)).filter((part) => part !== "");
+  if (parts.length === 0) return [];
+
+  return [
+    "Из глоссариев выведены только записи, термины которых есть в тексте, сами или в запрещённом переводе.",
+    ...parts,
   ];
 }
 
@@ -164,16 +182,13 @@ function checkPrompt(model: Model, doc: Doc, options: Options): string[] {
   const selectors = options.selectors.length > 0 ? options.selectors : ["recommended"];
   const planned = plan(model, doc.lang, selectors);
 
-  const parts = [
-    header(doc),
-    ...contextFiles(doc.lang, flow, fix, commonGlossary()).map(readBody),
-  ];
+  const parts = [header(doc), ...contextFiles(flow, fix).map(readBody)];
   const presetNotes = [notes(model, selectors), ...(fix ? [fixNotes(model, selectors)] : [])];
 
   if (flow === "single") {
     const rules = planned.kept.flatMap((id) => model.rules.get(id) ?? []);
     parts.push(
-      ...doc.glossary.map(readBody),
+      ...glossaries(rules, doc),
       ...presetNotes,
       ...rules.map((rule) => ruleText(rule, doc.lang)),
       checkResults(model, planned.kept, doc),
@@ -199,14 +214,12 @@ function checkPrompt(model: Model, doc: Doc, options: Options): string[] {
 function subagentPrompt(model: Model, doc: Doc, ids: string[]): string[] {
   const planned = plan(model, doc.lang, ids);
   const rules = planned.kept.flatMap((id) => model.rules.get(id) ?? []);
-  const needsGlossary = rules.some((rule) => rule.glossary);
 
   return [
     header(doc),
     readBody(join(refs, "scope.md")),
     ...rules.map((rule) => ruleText(rule, doc.lang)),
-    ...(needsGlossary && doc.lang === "ru" ? commonGlossary().map(readBody) : []),
-    ...(needsGlossary ? doc.glossary.map(readBody) : []),
+    ...glossaries(rules, doc),
     checkResults(model, planned.kept, doc),
   ];
 }
