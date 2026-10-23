@@ -1,6 +1,6 @@
 ---
-name: cr
-description: commit-related. Commit the changes that belong to the work done in this session, nothing else, split into one commit per layer when they span several.
+name: commit-related
+description: Commit the changes that belong to the work done in this session, nothing else, split into one commit per layer when they span several.
 argument-hint: "[staged | hint about scope or message]"
 metadata:
   author: ivan.gerasimov
