@@ -18,6 +18,7 @@ import {
   links,
   longSentences,
   prose,
+  repeatedConnectors,
   words,
 } from "./checks.ts";
 
@@ -114,6 +115,21 @@ test("contrast finds constructions across line breaks and skips «а также�
     "4: …Это кэш, а не база. Не сразу,…",
     "5: …база. Не сразу, а потом.…",
   ]);
+});
+
+test("repeated-connectors counts a connector per paragraph or list, «тогда как» joins «а»", () => {
+  const text = [
+    "Канал объявляет X, а позиция объявляет Y. Заказ создаёт сервер,",
+    "а клиент его не задаёт. Заказ не знает об оплате, тогда как Charge на него ссылается.",
+    "",
+    "Это кэш, а не база, а также не очередь. Запись идёт пачками, а чтение по одному.",
+    "",
+    "- Флаг скрывает продажу, но данные остаются.",
+    "- Отмена возвращает деньги, но билет не выпускает.",
+    "# Заголовок",
+    "При этом сервис один. При этом он stateless.",
+  ].join("\n");
+  assert.deepEqual(repeatedConnectors(text), ["1: «а» ×3 (1, 2)", "6: «но» ×2 (6, 7)", "9: «при этом» ×2 (9)"]);
 });
 
 test("words count prose words only", () => {

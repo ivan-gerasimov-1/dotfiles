@@ -84,6 +84,12 @@ const checks: Record<string, Check> = {
     langs: ["ru"],
     description: "Конструкции «X, а не Y» и «не X, а Y», в том числе разорванные переносом строки.",
   },
+  "repeated-connectors": {
+    run: repeatedConnectors,
+    langs: ["ru"],
+    description:
+      "Связки, которые повторяются в одном абзаце или списке: первая строка абзаца, связка, число вхождений и их строки. «А», «тогда как» и «в то время как» считаются одной связкой «а». Обороты «а не», «а также», «а значит», «а именно» и союз «и» скрипт не считает.",
+  },
 };
 
 function find(check: string): Check | undefined {
@@ -384,6 +390,67 @@ export function contrast(text: string): string[] {
     const found = `${match[1] ?? ""}${match[2] ?? ""}${match[3] ?? ""}`.replace(/\s+/g, " ");
     return `${n}: …${found}…`;
   });
+}
+
+/**
+ * Connectors repeated-connectors counts. «А» after a comma or at the start of a sentence,
+ * «тогда как» and «в то время как» join the same way, so they count as one.
+ */
+const repeatable: { name: string; pattern: RegExp }[] = [
+  {
+    name: "а",
+    pattern: new RegExp(
+      String.raw`(?:(?<=,\s*)а|(?<=(?:^|[.!?…]\s+))А)${end}(?!\s+(?:не|также|значит|именно)${end})|${start}(?:[Тт]огда|[Вв]\s+то\s+время)\s+как${end}`,
+      "gu",
+    ),
+  },
+  ...["но", "однако", "зато", "поэтому", "так что", "при этом", "причём"].map((name) => ({
+    name,
+    pattern: new RegExp(`${start}${name.replace(" ", String.raw`\s+`)}${end}`, "giu"),
+  })),
+];
+
+/**
+ * A paragraph or a list without blank lines between items is one block; headings and
+ * tables end it. Prints the first line of the block for each connector found twice or more.
+ */
+export function repeatedConnectors(text: string): string[] {
+  const out: string[] = [];
+  let block: Line[] = [];
+
+  const flush = () => {
+    if (block.length === 0) return;
+
+    let joined = "";
+    // Where each line starts in the joined text.
+    const starts: [number, number][] = [];
+    for (const { n, text } of block) {
+      starts.push([joined.length, n]);
+      joined += `${text} `;
+    }
+    const first = block[0]?.n ?? 0;
+    block = [];
+
+    for (const { name, pattern } of repeatable) {
+      const at = [...joined.matchAll(pattern)].map((match) => {
+        let line = first;
+        for (const [offset, n] of starts) if (offset <= match.index) line = n;
+        return line;
+      });
+      if (at.length >= 2) out.push(`${first}: «${name}» ×${at.length} (${[...new Set(at)].join(", ")})`);
+    }
+  };
+
+  for (const { n, text: line } of prose(text)) {
+    if (/^\s*$/.test(line) || /^\s*(?:#|\|)/.test(line)) {
+      flush();
+      continue;
+    }
+    block.push({ n, text: line.replace(/^\s*(?:[-*>]|\d+\.)\s+/, "") });
+  }
+  flush();
+
+  return out;
 }
 
 /** Prose words only: markup tokens, table separators, frontmatter and code blocks are not counted. */
