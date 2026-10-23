@@ -16,6 +16,7 @@ function rule(id: string, checks: string[]): Rule {
 
 const model: Model = {
   presets: new Map(),
+  fixes: new Map(),
   rules: new Map([
     ["GR001", rule("GR001", ["ellipsis"])],
     ["GR003", rule("GR003", ["connectors"])],

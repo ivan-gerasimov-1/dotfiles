@@ -1,6 +1,6 @@
 /**
  * Runs an editorial-guidance report on each fixture and scores each rule.
- * The report runs in the default single flow without `--fix`, so one agent
+ * The report runs in the default single flow with `--dry-run`, so one agent
  * checks each fixture and nothing is edited.
  *
  * Usage: node evals/eval.ts [RULE | RULE/NAME ...] [--runs N] [--jobs N] [--model NAME]
@@ -172,14 +172,15 @@ function loadFixtures(selectors: string[]): Fixture[] {
 }
 
 /**
- * Runs the skill once on a fixture. Edit and Write are off, so the run cannot change files.
+ * Runs the skill once on a fixture with `--dry-run`. Edit and Write are off as well,
+ * so the run cannot change files.
  * The skill passes chat text to prompt.ts on stdin, and prompt.ts saves it to a temp file.
  * TMPDIR points at the run directory, so those temp files go away with it.
  * Stdin is closed right away, otherwise claude waits for it before it starts.
  */
 function runClaude(fixture: Fixture, model: string | undefined, cwd: string): Promise<Run> {
   const args = [
-    "-p", `/editorial-guidance ${fixture.selectors.join(" ")} ${fixture.body}`,
+    "-p", `/editorial-guidance ${fixture.selectors.join(" ")} --dry-run ${fixture.body}`,
     "--allowedTools",
     "Read Glob Grep Skill Bash(*/scripts/prompt.ts *) Bash(*/scripts/checks.ts *)",
     "--disallowedTools", "Edit Write",

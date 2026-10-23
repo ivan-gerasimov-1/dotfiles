@@ -45,6 +45,8 @@ export type Rule = {
 
 export type Model = {
   presets: Map<string, Preset>;
+  /** Bodies of the `<preset>.fix.md` files, by file name without `.fix.md`. */
+  fixes: Map<string, string>;
   /** Sorted by ID. */
   rules: Map<string, Rule>;
   categories: string[];
@@ -184,7 +186,7 @@ export function loadModel(root: string): Model {
       }));
 
   const presets = new Map<string, Preset>();
-  for (const { name, text } of read("references/presets", /\.md$/)) {
+  for (const { name, text } of read("references/presets", /^[a-z][a-z0-9-]*\.md$/)) {
     const fm = frontmatter(text);
     presets.set(name, {
       name,
@@ -194,6 +196,11 @@ export function loadModel(root: string): Model {
       extends: fmList(fm, "extends"),
       body: body(text),
     });
+  }
+
+  const fixes = new Map<string, string>();
+  for (const { name, text } of read("references/presets", /\.fix\.md$/)) {
+    fixes.set(name.slice(0, -".fix".length), body(text));
   }
 
   const rules = new Map<string, Rule>();
@@ -216,7 +223,7 @@ export function loadModel(root: string): Model {
     "categories",
   );
 
-  return { presets, rules, categories, checks: checksFor };
+  return { presets, fixes, rules, categories, checks: checksFor };
 }
 
 export function isRule(model: Model, selector: string): boolean {
@@ -299,19 +306,22 @@ export function plan(model: Model, lang: Lang, selectors: string[]): Plan {
   return { plain, groups, kept, skipped };
 }
 
+/** The selected presets and the presets they extend, each once, parents first. */
+function selectedPresets(model: Model, selectors: string[]): string[] {
+  return unique(
+    selectors
+      .filter((selector) => isPreset(model, selector))
+      .flatMap((name) => [...(model.presets.get(name)?.extends ?? []), name]),
+  );
+}
+
 /**
  * Bodies of the selected presets and the presets they extend, each once. A preset with
  * groups gets the list of its groups from the frontmatter, under its "## Группы"
  * heading or at the end, so the text never repeats the frontmatter by hand.
  */
 export function notes(model: Model, selectors: string[]): string {
-  const names = unique(
-    selectors
-      .filter((selector) => isPreset(model, selector))
-      .flatMap((name) => [...(model.presets.get(name)?.extends ?? []), name]),
-  );
-
-  return names
+  return selectedPresets(model, selectors)
     .flatMap((name) => model.presets.get(name) ?? [])
     .map((preset) => {
       const lines = preset.body.split("\n");
@@ -325,6 +335,13 @@ export function notes(model: Model, selectors: string[]): string {
       else lines.splice(heading + 1, 0, "", ...list);
       return lines.join("\n");
     })
+    .join("\n\n");
+}
+
+/** Fix files of the selected presets and the presets they extend, in the order of `notes`. */
+export function fixNotes(model: Model, selectors: string[]): string {
+  return selectedPresets(model, selectors)
+    .flatMap((name) => model.fixes.get(name) ?? [])
     .join("\n\n");
 }
 
@@ -401,6 +418,15 @@ export function check(model: Model): string[] {
 
     const own = repeated([...preset.rules, ...preset.groups.flatMap((group) => group.rules)]);
     if (own.length > 0) problems.push(`${name}: lists ${own.join(" ")} more than once`);
+
+    // Editing goes in its own file, so a dry run can leave it out.
+    if (/^#+ .*[Пп]равк/m.test(preset.body)) {
+      problems.push(`${name}: has editing text, move it to ${name}.fix.md`);
+    }
+  }
+
+  for (const name of model.fixes.keys()) {
+    if (!model.presets.has(name)) problems.push(`${name}.fix.md: no preset ${name}`);
   }
 
   for (const rule of model.rules.values()) {

@@ -3,10 +3,11 @@
  * The one call an agent makes to start a check: prints everything the check needs,
  * with the mechanical checks already run on the text.
  *
- * Usage: prompt.ts [<selector>...] [--flow single|parallel] [--fix] [--lang ru|en] <file | ->
+ * Usage: prompt.ts [<selector>...] [--flow single|parallel] [--dry-run] [--lang ru|en] <file | ->
  *        prompt.ts --subagent [--lang ru|en] <rule ID>... <file>
  *
  * A selector is a preset name or a rule ID; no selectors means the recommended preset.
+ * The check edits the text unless --dry-run leaves out everything about editing.
  * `-` reads the text from stdin and saves it to a temp file. The language is guessed
  * from the letters of the prose unless --lang sets it. Output longer than a command's
  * output limit goes to a temp file, and the output names it.
@@ -22,9 +23,21 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { describe, type Lang, prose, requiresFile, run, words } from "./checks.ts";
 import { commonGlossary, projectGlossary } from "./glossary.ts";
-import { body, checkRules, groupLines, isPreset, isRule, loadModel, type Model, notes, plan, ruleText } from "./rules.ts";
+import {
+  body,
+  checkRules,
+  fixNotes,
+  groupLines,
+  isPreset,
+  isRule,
+  loadModel,
+  type Model,
+  notes,
+  plan,
+  ruleText,
+} from "./rules.ts";
 
-const usage = `Usage: prompt.ts [<selector>...] [--flow single|parallel] [--fix] [--lang ru|en] <file | ->
+const usage = `Usage: prompt.ts [<selector>...] [--flow single|parallel] [--dry-run] [--lang ru|en] <file | ->
        prompt.ts --subagent [--lang ru|en] <rule ID>... <file>
 `;
 
@@ -44,7 +57,7 @@ type Options = {
   selectors: string[];
   target: string;
   flow: Flow;
-  fix: boolean;
+  dryRun: boolean;
   lang: Lang | undefined;
   subagent: boolean;
 };
@@ -141,9 +154,13 @@ function header(doc: Doc): string {
   ].join(" ");
 }
 
-/** The whole check for the main agent: the flow, presets and rules, or the groups for subagents. */
+/**
+ * The whole check for the main agent: the flow, presets and rules, or the groups for
+ * subagents. Fix files go in unless it is a dry run.
+ */
 function checkPrompt(model: Model, doc: Doc, options: Options): string[] {
-  const { flow, fix } = options;
+  const { flow } = options;
+  const fix = !options.dryRun;
   const selectors = options.selectors.length > 0 ? options.selectors : ["recommended"];
   const planned = plan(model, doc.lang, selectors);
 
@@ -151,18 +168,19 @@ function checkPrompt(model: Model, doc: Doc, options: Options): string[] {
     header(doc),
     ...contextFiles(doc.lang, flow, fix, commonGlossary()).map(readBody),
   ];
+  const presetNotes = [notes(model, selectors), ...(fix ? [fixNotes(model, selectors)] : [])];
 
   if (flow === "single") {
     const rules = planned.kept.flatMap((id) => model.rules.get(id) ?? []);
     parts.push(
       ...doc.glossary.map(readBody),
-      notes(model, selectors),
+      ...presetNotes,
       ...rules.map((rule) => ruleText(rule, doc.lang)),
       checkResults(model, planned.kept, doc),
     );
   } else {
     parts.push(
-      notes(model, selectors),
+      ...presetNotes,
       `# Группы для сабагентов\n\n${groupLines(planned).join("\n")}`,
     );
   }
@@ -206,7 +224,7 @@ function parse(args: string[]): Options {
       allowPositionals: true,
       options: {
         flow: { type: "string", default: "single" },
-        fix: { type: "boolean", default: false },
+        "dry-run": { type: "boolean", default: false },
         lang: { type: "string" },
         subagent: { type: "boolean", default: false },
       },
@@ -215,7 +233,8 @@ function parse(args: string[]): Options {
     fail(usage);
   }
 
-  const { flow, fix, lang, subagent } = parsed.values;
+  const { flow, lang, subagent } = parsed.values;
+  const dryRun = parsed.values["dry-run"];
   const target = parsed.positionals.at(-1);
   const selectors = parsed.positionals.slice(0, -1);
   if (target === undefined) fail(usage);
@@ -223,7 +242,7 @@ function parse(args: string[]): Options {
   if (lang !== undefined && lang !== "ru" && lang !== "en") fail(usage);
   if (subagent && selectors.length === 0) fail(usage);
 
-  return { selectors, target, flow, fix, lang, subagent };
+  return { selectors, target, flow, dryRun, lang, subagent };
 }
 
 /**

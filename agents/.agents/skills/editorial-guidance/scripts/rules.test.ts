@@ -6,11 +6,16 @@
  */
 
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import {
   check,
   checkRules,
+  fixNotes,
   groupLines,
+  loadModel,
   type Model,
   notes,
   plan,
@@ -38,9 +43,10 @@ function preset(name: string, fields: Partial<Preset> = {}): Preset {
   return { name, id: name, rules: [], groups: [], extends: [], body: `# ${name}`, ...fields };
 }
 
-function model(presets: Preset[], rules: Rule[]): Model {
+function model(presets: Preset[], rules: Rule[], fixes: [string, string][] = []): Model {
   return {
     presets: new Map(presets.map((p) => [p.name, p])),
+    fixes: new Map(fixes),
     rules: new Map(rules.map((r) => [r.name, r])),
     categories: ["grammar", "terms"],
     checks: (lang) => (lang === "ru" ? ["latin", "connectors"] : ["connectors"]),
@@ -125,6 +131,32 @@ test("notes print each preset once, parents first, with its groups", () => {
   assert.equal(notes(base, ["base"]), "# base\n\n## Группы\n\n1. Base: GR001, GR002");
 });
 
+test("fix notes follow the order of notes and skip presets without a fix file", () => {
+  const withFixes = model(
+    [preset("base"), preset("plain"), preset("child", { extends: ["base", "plain"] })],
+    [],
+    [
+      ["child", "# Правка пресета child"],
+      ["base", "# Правка пресета base"],
+    ],
+  );
+  assert.equal(fixNotes(withFixes, ["child", "base"]), "# Правка пресета base\n\n# Правка пресета child");
+  assert.equal(fixNotes(withFixes, ["plain"]), "");
+});
+
+test("a fix file is loaded next to its preset, not as a preset", () => {
+  const root = mkdtempSync(join(tmpdir(), "editorial-test-"));
+  mkdirSync(join(root, "references/presets"), { recursive: true });
+  mkdirSync(join(root, "references/rules"));
+  writeFileSync(join(root, "references/categories.md"), "---\ncategories: [grammar]\n---\n");
+  writeFileSync(join(root, "references/presets/base.md"), "---\nid: base\n---\n\n# base\n");
+  writeFileSync(join(root, "references/presets/base.fix.md"), "# Правка пресета base\n");
+
+  const loaded = loadModel(root);
+  assert.deepEqual([...loaded.presets.keys()], ["base"]);
+  assert.deepEqual([...loaded.fixes], [["base", "# Правка пресета base"]]);
+});
+
 test("rule text keeps the description and the section of the language", () => {
   const text = rule("GR001", { body: "# GR001\n\nDescription.\n\n## ru\n\nПример.\n\n## en\n\nExample." });
   assert.equal(ruleText(text, "ru"), "# GR001\n\nDescription.\n\n## ru\n\nПример.");
@@ -143,13 +175,14 @@ test("check reports where presets, rules and checks disagree", () => {
   const broken = model(
     [
       preset("article", { rules: ["GR001", "GR001", "XX001"], groups: [{ title: "G", rules: ["GR002"] }] }),
-      preset("odd", { id: "other", extends: ["article", "nope"] }),
+      preset("odd", { id: "other", extends: ["article", "nope"], body: "# odd\n\n## Правка\n" }),
     ],
     [
       rule("GR001", { body: "# GR001\n\nНе путать с TE001. Гибриды из глоссария." }),
       rule("GR002", { languages: [], category: "terms" }),
       rule("GR003", { text: "---\nid: GR003\n---\n\n## de\n\n## ru\n\n## ru\n", checks: ["nope"] }),
     ],
+    [["gone", "# Правка пресета gone"]],
   );
   assert.deepEqual(check(broken), [
     "article: has both rules and groups",
@@ -158,6 +191,8 @@ test("check reports where presets, rules and checks disagree", () => {
     "odd: id does not match the file name",
     "odd: extends unknown preset nope",
     "odd: no rule file for XX001",
+    "odd: has editing text, move it to odd.fix.md",
+    "gone.fix.md: no preset gone",
     "GR001: mentions other rules TE001",
     "GR001: mentions the glossary but has no glossary: true",
     "GR002: no languages",
