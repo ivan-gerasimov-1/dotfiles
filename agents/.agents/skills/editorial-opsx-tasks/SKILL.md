@@ -6,7 +6,7 @@ allowed-tools: Bash(openspec list:*), Bash(openspec validate:*), Bash(openspec i
 
 Rewrite `openspec/changes/<name>/tasks.md` in place. The content stays the same: you change its form, not its facts. The file stays in its own language.
 
-This skill adapts the rules of `editorial-task` (written for Jira tickets) to OpenSpec. The differences: task checkboxes stay, there are no Jira sections, and nothing is written outside the file.
+This skill adapts the `task` preset of `editorial-guidance` (written for Jira tickets) to OpenSpec. The differences: task checkboxes stay, there are no Jira sections, and nothing is written outside the file.
 
 ## Steps
 
