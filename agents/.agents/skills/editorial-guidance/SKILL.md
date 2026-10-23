@@ -1,6 +1,8 @@
 ---
 name: editorial-guidance
-description: eg. Линтер технического текста: слоп, термины, грамматика, читаемость. Правит текст и выдаёт отчёт с находками, либо только отчёт.
+description: >
+    eg
+    Линтер технического текста: слоп, термины, грамматика, читаемость. Правит текст и выдаёт отчёт с находками, либо только отчёт.
 argument-hint: "[preset|rule…] [--flow single|parallel] [--dry-run] [file or message]"
 metadata:
   author: ivan.gerasimov
