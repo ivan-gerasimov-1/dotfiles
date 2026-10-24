@@ -18,6 +18,10 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Focus right window" })
 vim.keymap.set("n", "<leader>d", "<cmd>vsplit<CR>", { desc = "Split vertical" })
 vim.keymap.set("n", "<leader>D", "<cmd>split<CR>", { desc = "Split horizontal" })
 
+-- Search
+-- <C-l> moves between windows, so <Esc> takes over its built-in :nohlsearch
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
+
 -- LSP
 -- [d / ]d, grr (references) and gri (implementation) are Neovim defaults
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
