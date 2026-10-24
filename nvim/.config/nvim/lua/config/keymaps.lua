@@ -18,14 +18,9 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Focus right window" })
 vim.keymap.set("n", "<leader>d", "<cmd>vsplit<CR>", { desc = "Split vertical" })
 vim.keymap.set("n", "<leader>D", "<cmd>split<CR>", { desc = "Split horizontal" })
 
--- Diagnostics
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-
 -- LSP
+-- [d / ]d, grr (references) and gri (implementation) are Neovim defaults
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Find references" })
-vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
 vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover documentation" })
 
 vim.keymap.set("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
