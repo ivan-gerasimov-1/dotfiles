@@ -3,7 +3,7 @@
  * The one call an agent makes to start a check: prints everything the check needs,
  * with the mechanical checks already run on the text.
  *
- * Usage: prompt.ts [<selector>...] [--copydesk] [--dry-run] [--lang ru|en] <file | ->
+ * Usage: prompt.ts [<selector>...] [-c|--copydesk] [-n|--dry-run] [--lang ru|en] <file | ->
  *        prompt.ts --subagent [--lang ru|en] <rule ID>... <file>
  *
  * A selector is a preset name or a rule ID; no selectors means the recommended preset.
@@ -39,7 +39,7 @@ import {
   ruleText,
 } from "./rules.ts";
 
-const usage = `Usage: prompt.ts [<selector>...] [--copydesk] [--dry-run] [--lang ru|en] <file | ->
+const usage = `Usage: prompt.ts [<selector>...] [-c|--copydesk] [-n|--dry-run] [--lang ru|en] <file | ->
        prompt.ts --subagent [--lang ru|en] <rule ID>... <file>
 `;
 
@@ -237,8 +237,8 @@ function parse(args: string[]): Options {
       args,
       allowPositionals: true,
       options: {
-        copydesk: { type: "boolean", default: false },
-        "dry-run": { type: "boolean", default: false },
+        copydesk: { type: "boolean", short: "c", default: false },
+        "dry-run": { type: "boolean", short: "n", default: false },
         lang: { type: "string" },
         subagent: { type: "boolean", default: false },
       },
@@ -255,6 +255,7 @@ function parse(args: string[]): Options {
   if (target === undefined) fail(usage);
   if (lang !== undefined && lang !== "ru" && lang !== "en") fail(usage);
   if (subagent && selectors.length === 0) fail(usage);
+  if (subagent && (copydesk || dryRun)) fail(usage);
 
   return { selectors, target, flow, dryRun, lang, subagent };
 }
