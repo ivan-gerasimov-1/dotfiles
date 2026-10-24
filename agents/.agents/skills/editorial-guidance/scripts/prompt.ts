@@ -3,10 +3,11 @@
  * The one call an agent makes to start a check: prints everything the check needs,
  * with the mechanical checks already run on the text.
  *
- * Usage: prompt.ts [<selector>...] [--flow single|parallel] [--dry-run] [--lang ru|en] <file | ->
+ * Usage: prompt.ts [<selector>...] [--copydesk] [--dry-run] [--lang ru|en] <file | ->
  *        prompt.ts --subagent [--lang ru|en] <rule ID>... <file>
  *
  * A selector is a preset name or a rule ID; no selectors means the recommended preset.
+ * --copydesk runs the parallel flow, subagents by group; without it one agent checks.
  * The check edits the text unless --dry-run leaves out everything about editing.
  * `-` reads the text from stdin and saves it to a temp file. The language is guessed
  * from the letters of the prose unless --lang sets it. Output longer than a command's
@@ -38,7 +39,7 @@ import {
   ruleText,
 } from "./rules.ts";
 
-const usage = `Usage: prompt.ts [<selector>...] [--flow single|parallel] [--dry-run] [--lang ru|en] <file | ->
+const usage = `Usage: prompt.ts [<selector>...] [--copydesk] [--dry-run] [--lang ru|en] <file | ->
        prompt.ts --subagent [--lang ru|en] <rule ID>... <file>
 `;
 
@@ -236,7 +237,7 @@ function parse(args: string[]): Options {
       args,
       allowPositionals: true,
       options: {
-        flow: { type: "string", default: "single" },
+        copydesk: { type: "boolean", default: false },
         "dry-run": { type: "boolean", default: false },
         lang: { type: "string" },
         subagent: { type: "boolean", default: false },
@@ -246,12 +247,12 @@ function parse(args: string[]): Options {
     fail(usage);
   }
 
-  const { flow, lang, subagent } = parsed.values;
+  const { copydesk, lang, subagent } = parsed.values;
+  const flow: Flow = copydesk ? "parallel" : "single";
   const dryRun = parsed.values["dry-run"];
   const target = parsed.positionals.at(-1);
   const selectors = parsed.positionals.slice(0, -1);
   if (target === undefined) fail(usage);
-  if (flow !== "single" && flow !== "parallel") fail(usage);
   if (lang !== undefined && lang !== "ru" && lang !== "en") fail(usage);
   if (subagent && selectors.length === 0) fail(usage);
 

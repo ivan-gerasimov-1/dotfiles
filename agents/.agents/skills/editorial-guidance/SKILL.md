@@ -3,10 +3,10 @@ name: editorial-guidance
 description: >
     eg
     Линтер технического текста: слоп, термины, грамматика, читаемость. Правит текст и выдаёт отчёт с находками, либо только отчёт.
-argument-hint: "[preset|rule…] [--flow single|parallel] [--dry-run] [file or message]"
+argument-hint: "[preset|rule…] [--copydesk] [--dry-run] [file or message]"
 metadata:
   author: ivan.gerasimov
-  version: "4.0.0"
+  version: "5.0.0"
 ---
 
 # Editorial Guidance
@@ -27,7 +27,7 @@ metadata:
 
 ## Вызов
 
-`/editorial-guidance [селекторы] [--flow single|parallel] [--dry-run] [файл или текст]`.
+`/editorial-guidance [селекторы] [--copydesk] [--dry-run] [файл или текст]`.
 Другие скиллы пишут вызов так же, например «`editorial-guidance prose`».
 
 **Селекторы** выбирают правила: имя пресета или номер правила, например `XX001`.
@@ -42,12 +42,11 @@ metadata:
 | [`article`](references/presets/article.md) | слоп и язык для документа целиком |
 | [`task`](references/presets/task.md) | описание задачи в трекере: каркас разделов, код, критерии и язык |
 
-**`--flow`** решает, как идёт проверка. По умолчанию действует `single`.
-
-| Флоу | Как идёт проверка |
-|---|---|
-| [`single`](references/flows/single.md) | всю проверку ведёт один агент |
-| [`parallel`](references/flows/parallel.md) | каждую группу проверяет свой сабагент: дороже, но длинный документ проверяется тщательнее |
+**`--copydesk`** раздаёт группы правил сабагентам, как выпускающий редактор
+газетного copy desk раздаёт материалы и сводит правки. Это флоу
+[`parallel`](references/flows/parallel.md): дороже, но длинный документ
+проверяется тщательнее. Без флага всю проверку ведёт один агент, флоу
+[`single`](references/flows/single.md).
 
 **`--dry-run`** оставляет текст как есть. Без него скилл правит файл на месте,
 а текст из чата возвращает исправленным. С ним скилл выдаёт только отчёт с находками
@@ -57,7 +56,7 @@ metadata:
 ## Как выполнять
 
 1. Определи текст по разделу [«Что проверять»](#что-проверять).
-2. Вызови `<каталог скилла>/scripts/prompt.ts <селекторы> [--flow parallel] [--dry-run] <файл>`
+2. Вызови `<каталог скилла>/scripts/prompt.ts <селекторы> [--copydesk] [--dry-run] <файл>`
    по полному пути. Текст из чата передай вместо файла через stdin:
 
    ```bash
