@@ -61,7 +61,7 @@ const base = model(
       groups: [{ title: "Own", rules: ["GR003"] }],
     }),
     preset("flat", { rules: ["GR004", "GR002", "GR005"] }),
-    preset("article", { extends: ["base", "flat"], groups: [{ title: "Rest", rules: ["GR003"] }] }),
+    preset("document", { extends: ["base", "flat"], groups: [{ title: "Rest", rules: ["GR003"] }] }),
   ],
   [
     rule("GR001", { checks: ["connectors"] }),
@@ -165,7 +165,7 @@ test("rule text keeps the description and the section of the language", () => {
 
 test("check passes on an agreeing model", () => {
   const agreeing = model(
-    [preset("article", { rules: ["GR001", "TE001"] })],
+    [preset("document", { rules: ["GR001", "TE001"] })],
     [rule("GR001", { checks: ["connectors"] }), rule("TE001", { category: "terms", checks: ["latin"] })],
   );
   assert.deepEqual(check(agreeing), []);
@@ -174,8 +174,8 @@ test("check passes on an agreeing model", () => {
 test("check reports where presets, rules and checks disagree", () => {
   const broken = model(
     [
-      preset("article", { rules: ["GR001", "GR001", "XX001"], groups: [{ title: "G", rules: ["GR002"] }] }),
-      preset("odd", { id: "other", extends: ["article", "nope"], body: "# odd\n\n## Правка\n" }),
+      preset("document", { rules: ["GR001", "GR001", "XX001"], groups: [{ title: "G", rules: ["GR002"] }] }),
+      preset("odd", { id: "other", extends: ["document", "nope"], body: "# odd\n\n## Правка\n" }),
     ],
     [
       rule("GR001", { body: "# GR001\n\nНе путать с TE001. Гибриды из глоссария." }),
@@ -185,9 +185,9 @@ test("check reports where presets, rules and checks disagree", () => {
     [["gone", "# Правка пресета gone"]],
   );
   assert.deepEqual(check(broken), [
-    "article: has both rules and groups",
-    "article: no rule file for XX001",
-    "article: lists GR001 more than once",
+    "document: has both rules and groups",
+    "document: no rule file for XX001",
+    "document: lists GR001 more than once",
     "odd: id does not match the file name",
     "odd: extends unknown preset nope",
     "odd: no rule file for XX001",

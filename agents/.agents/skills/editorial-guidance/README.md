@@ -101,7 +101,7 @@
 | `/editorial-guidance` | правка по `recommended` одним агентом |
 | `/editorial-guidance --dry-run` | отчёт по `recommended`, текст не меняется |
 | `/editorial-guidance slop -n` | отчёт по слопу с оценкой от 1 до 5 |
-| `/editorial-guidance article -c` | правка документа по слопу и языку, сабагенты по группам, как на copy desk |
+| `/editorial-guidance document -c` | правка документа по слопу и языку, сабагенты по группам, как на copy desk |
 | `/editorial-guidance task` | правка описания задачи: каркас разделов, код, критерии и язык |
 | `/editorial-guidance GR003 CA001 --dry-run` | отчёт только по двум правилам |
 | `/editorial-guidance light <текст>` | быстрая и простая правка |

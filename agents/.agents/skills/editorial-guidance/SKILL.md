@@ -6,7 +6,7 @@ description: >
 argument-hint: "[preset|rule…] [-c|--copydesk] [-n|--dry-run] [file or message]"
 metadata:
   author: ivan.gerasimov
-  version: "5.1.0"
+  version: "6.0.0"
 ---
 
 # Editorial Guidance
@@ -39,7 +39,7 @@ metadata:
 | [`light`](references/presets/light.md) | быстрая проверка по скриптам и узнаваемым оборотам |
 | [`prose`](references/presets/prose.md) | правила языка |
 | [`slop`](references/presets/slop.md) | правила слопа с оценкой от 1 до 5 |
-| [`article`](references/presets/article.md) | слоп и язык для документа целиком |
+| [`document`](references/presets/document.md) | слоп и язык для документа целиком |
 | [`task`](references/presets/task.md) | описание задачи в трекере: каркас разделов, код, критерии и язык |
 
 **`-c`, `--copydesk`** раздаёт группы правил сабагентам, как выпускающий редактор
