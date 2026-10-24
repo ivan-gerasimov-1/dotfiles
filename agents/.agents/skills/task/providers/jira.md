@@ -31,7 +31,7 @@ Summary: English, prefixed by category (`[Domain] …`), as in jira-rules «Nami
 
 - **Dedup:** `searchJiraIssuesUsingJql` with `project = PD AND reporter = currentUser() AND created >= -2d AND summary ~ "\"<summary>\""`.
 - **Create:** `createJiraIssue` with `projectKey: "PD"`, `issueType: "Task: Development"` (or the type the user named), `summary`, `description` (markdown), `assignee`, `labels`, `additional_fields: { "customfield_10001": "<Staff team id>", "timetracking": { "originalEstimate": "<N>h" } }`, and `parent` if given. Team, assignee and estimate stick on create; no follow-up updates are needed.
-- **Initial status:** `Backlog`, through the workflow in two `transitionJiraIssue` calls: `Move to triage` (id `7`), then `Move to backlog` (id `8`). If an id is rejected, list transitions (`listJiraIssueTransitions` via `executeRead`) and pick by name.
+- **Initial status:** `Backlog`, one `transitionJiraIssue` call: `Backlog` (id `102`, New → Backlog). If the id is rejected, list transitions (`listJiraIssueTransitions` via `executeRead`) and pick by name.
 - **Read:** `getJiraIssue`, `view: "evidence"` for a read-back.
 - **Write:** `editJiraIssue` sets the fields it gets in full: pass only `description` (and `summary` if asked), never `labels` or other fields.
 - **Link:** `https://fru-it-team.atlassian.net/browse/<KEY>`.
