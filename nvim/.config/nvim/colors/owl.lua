@@ -157,13 +157,11 @@ hi("@tag.attribute", { fg = c.muted })
 hi("@tag.delimiter", { fg = c.dim })
 
 -- Plugin groups -------------------------------------------------------------
-hi("TelescopeNormal", { fg = c.fg, bg = c.bg_alt })
-hi("TelescopeBorder", { fg = c.dim, bg = c.bg_alt })
-hi("TelescopePromptNormal", { fg = c.fg, bg = c.bg_alt })
-hi("TelescopePromptBorder", { fg = c.accent, bg = c.bg_alt })
-hi("TelescopePromptTitle", { fg = c.black, bg = c.accent })
-hi("TelescopeMatching", { fg = c.accent, bold = true })
-hi("TelescopeSelection", { fg = c.fg, bg = c.bg_sel })
+-- picker windows link to NormalFloat / FloatBorder by default; only the prompt, matches and selection stand out
+hi("SnacksPickerInputBorder", { fg = c.accent, bg = c.bg_alt })
+hi("SnacksPickerInputTitle", { fg = c.black, bg = c.accent })
+hi("SnacksPickerMatch", { fg = c.accent, bold = true })
+hi("SnacksPickerListCursorLine", { fg = c.fg, bg = c.bg_sel })
 
 hi("NvimTreeNormal", { fg = c.fg, bg = "NONE" })
 hi("NvimTreeNormalNC", { fg = c.fg_soft, bg = "NONE" })
