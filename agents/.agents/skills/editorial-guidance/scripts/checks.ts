@@ -7,8 +7,6 @@
  * Usage: checks.ts <check> file.md
  *
  * Empty output means no findings. Exit code is 0 either way; 2 means bad usage.
- *
- * Needs Node 22.18+ to run TypeScript without a build step.
  */
 
 import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";

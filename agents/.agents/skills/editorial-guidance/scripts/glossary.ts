@@ -1,7 +1,5 @@
 /**
  * Glossaries: the common one of the skill and the project one a repository names.
- *
- * Needs Node 22.18+ to run TypeScript without a build step.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";

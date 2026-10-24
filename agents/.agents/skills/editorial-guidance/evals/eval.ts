@@ -14,8 +14,6 @@
  * Only these rules are scored. Other rules a fixture fires are listed as extra,
  * and a fired `not` rule is marked with `!`.
  * Raw replies go to results/<timestamp>/.
- *
- * Needs Node 23.6+ to run TypeScript without a build step.
  */
 
 import { execFile } from "node:child_process";

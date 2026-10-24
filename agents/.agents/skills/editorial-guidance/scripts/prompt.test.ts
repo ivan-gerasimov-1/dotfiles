@@ -5,9 +5,19 @@
  */
 
 import assert from "node:assert/strict";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, utimesSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import { checksFor } from "./checks.ts";
-import { checkResults, contextFiles, type Doc, glossaries, guessLang } from "./prompt.ts";
+import {
+  checkResults,
+  contextFiles,
+  type Doc,
+  glossaries,
+  guessLang,
+  sweep,
+} from "./prompt.ts";
 import type { Model, Rule } from "./rules.ts";
 
 function rule(id: string, checks: string[]): Rule {
@@ -84,4 +94,24 @@ test("the glossary goes only with the rules that read it, cut to the text", () =
   assert.match(out, /PR/);
   assert.doesNotMatch(out, /пайплайн —/);
   assert.doesNotMatch(out, /## Заменять/);
+});
+
+test("the sweep removes only temp dirs of prompt.ts older than a day", () => {
+  const root = mkdtempSync(join(tmpdir(), "editorial-test-"));
+  try {
+    const day = 24 * 60 * 60;
+    const now = Date.now();
+    for (const name of ["editorial-guidance-old", "editorial-guidance-new", "other-old"]) {
+      mkdirSync(join(root, name));
+      const age = name.endsWith("-old") ? 2 * day : 60;
+      utimesSync(join(root, name), now / 1000 - age, now / 1000 - age);
+    }
+
+    sweep(root, now);
+    assert.equal(existsSync(join(root, "editorial-guidance-old")), false);
+    assert.equal(existsSync(join(root, "editorial-guidance-new")), true);
+    assert.equal(existsSync(join(root, "other-old")), true);
+  } finally {
+    rmSync(root, { recursive: true });
+  }
 });

@@ -12,12 +12,20 @@
  * `-` reads the text from stdin and saves it to a temp file. The language is guessed
  * from the letters of the prose unless --lang sets it. Output longer than a command's
  * output limit goes to a temp file, and the output names it.
+ * Both temp files of a call share one temp dir, and each call removes such dirs older
+ * than a day.
  * Exit code 2 means bad usage or an unknown selector.
- *
- * Needs Node 22.18+ to run TypeScript without a build step.
  */
 
-import { mkdtempSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,6 +60,12 @@ const outputLimit = 28_000;
 
 /** Lines of one check's output shown before the rest is cut. */
 const checkLimit = 40;
+
+/** Names the temp dirs of prompt.ts, so the sweep touches nothing else. */
+const tempPrefix = "editorial-guidance-";
+
+/** A temp dir this old belongs to a run that never cleaned up, such as an interrupted one. */
+const staleAfterMs = 24 * 60 * 60 * 1000;
 
 type Flow = "single" | "parallel";
 
@@ -269,7 +283,7 @@ function readDoc(target: string, lang: Lang | undefined): Doc {
   let file = target;
 
   if (fromChat) {
-    file = join(mkdtempSync(join(tmpdir(), "editorial-")), "text.md");
+    file = tempFile("text.md");
     writeFileSync(file, readFileSync(0, "utf8"));
   } else if (!statSync(file, { throwIfNoEntry: false })?.isFile()) {
     fail(`No such file: ${file}\n`);
@@ -281,6 +295,14 @@ function readDoc(target: string, lang: Lang | undefined): Doc {
   return { file, text, fromChat, lang: lang ?? guessLang(text), glossary: projectGlossary(starts) };
 }
 
+let runDir: string | undefined;
+
+/** A file in the temp dir of this call, made on first use. */
+function tempFile(name: string): string {
+  runDir ??= mkdtempSync(join(tmpdir(), tempPrefix));
+  return join(runDir, name);
+}
+
 /** Writes the output, or a pointer to a temp file when the output is too long. */
 function write(parts: string[]): void {
   const out = `${parts.filter((part) => part !== "").join("\n\n")}\n`;
@@ -289,14 +311,29 @@ function write(parts: string[]): void {
     return;
   }
 
-  const file = join(mkdtempSync(join(tmpdir(), "editorial-")), "prompt.md");
+  const file = tempFile("prompt.md");
   writeFileSync(file, out);
   process.stdout.write(
     `Вывод длиннее предела вывода команды и сохранён в файл. Прочитай его целиком: ${file}\n`,
   );
 }
 
+/** Removes temp dirs older than a day, left by runs that never cleaned up. */
+export function sweep(root = tmpdir(), now = Date.now()): void {
+  for (const name of readdirSync(root)) {
+    if (!name.startsWith(tempPrefix)) continue;
+
+    const dir = join(root, name);
+    try {
+      if (now - statSync(dir).mtimeMs > staleAfterMs) rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // Another call removed it first, or it belongs to another user.
+    }
+  }
+}
+
 function main(args: string[]): void {
+  sweep();
   const options = parse(args);
   const model = loadModel(skill);
 

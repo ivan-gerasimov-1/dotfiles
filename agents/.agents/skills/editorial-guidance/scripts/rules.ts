@@ -6,8 +6,6 @@
  * Usage: rules.ts --check   check that presets, rules and checks agree
  *
  * Exit code 1 means problems were found, 2 means bad usage.
- *
- * Needs Node 22.18+ to run TypeScript without a build step.
  */
 
 import { readdirSync, readFileSync, realpathSync } from "node:fs";

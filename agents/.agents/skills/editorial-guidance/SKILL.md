@@ -4,9 +4,10 @@ description: >
     eg
     Линтер технического текста: слоп, термины, грамматика, читаемость. Правит текст и выдаёт отчёт с находками, либо только отчёт.
 argument-hint: "[preset|rule…] [-c|--copydesk] [-n|--dry-run] [file or message]"
+allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/prompt.ts *) Bash(${CLAUDE_SKILL_DIR}/scripts/checks.ts *)
 metadata:
   author: ivan.gerasimov
-  version: "6.0.0"
+  version: "6.1.0"
 ---
 
 # Editorial Guidance
@@ -69,4 +70,6 @@ metadata:
    проверок. Файлы скилла отдельно не открывай. Язык текста скрипт определяет сам
    и называет в первой строке. Если он ошибся, повтори вызов с `--lang ru` или
    `--lang en`. Если вывод сохранён в файл, прочитай этот файл целиком.
+
+   Если скрипт не запустился, остановись и покажи пользователю ошибку. Без вывода скрипта текст не проверяй.
 3. Действуй по выведенному флоу.
