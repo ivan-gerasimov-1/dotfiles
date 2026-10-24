@@ -1,5 +1,5 @@
 ---
 expect: flag
-note: "robust" и "leverages" без проверяемого утверждения
+note: "leverages" и "robust" без проверяемого утверждения, остальной текст фактический
 ---
-The importer is a robust solution that leverages modern tooling. It reads the CSV file and writes each row to the donations table.
+The importer leverages a robust CSV parser. It reads the file and writes each row to the donations table.
