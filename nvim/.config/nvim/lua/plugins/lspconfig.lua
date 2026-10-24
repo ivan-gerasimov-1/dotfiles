@@ -5,20 +5,11 @@ return {
       capabilities = require("blink.cmp").get_lsp_capabilities(),
     })
 
-    vim.lsp.config("gopls", {
-      settings = {
-        gopls = {
-          gofumpt = true,
-          staticcheck = true,
-        },
-      },
-    })
-
     vim.lsp.enable({
-      "ts_ls",
+      -- native TypeScript 7 server (tsc --lsp); ts_ls needs tsserver.js, which TS 7 no longer ships
+      "tsc",
       "jsonls",
       "lua_ls",
-      "gopls",
     })
   end,
 }
