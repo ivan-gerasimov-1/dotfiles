@@ -11,12 +11,6 @@ vim.opt.fillchars = { eob = " " }
 vim.opt.shortmess:append("I")
 vim.opt.showmode = false
 
-vim.filetype.add({
-  extension = {
-    gotmpl = "gotmpl",
-  },
-})
-
 vim.opt.expandtab = true
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
