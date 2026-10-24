@@ -16,5 +16,8 @@ return {
     vim.keymap.set("n", "<leader>fg", telescope.live_grep, { desc = "Search text" })
     vim.keymap.set("n", "<leader>fb", telescope.buffers, { desc = "Find buffer" })
     vim.keymap.set("n", "<leader>fh", telescope.help_tags, { desc = "Search help" })
+    vim.keymap.set("n", "<leader>ft", function()
+      telescope.grep_string({ search = "\\b(TODO|FIXME|HACK|NOTE|WARN)\\b", use_regex = true })
+    end, { desc = "Find TODOs" })
   end,
 }
