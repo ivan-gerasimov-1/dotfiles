@@ -1,6 +1,5 @@
 ---
 expect: flag
-selectors: task
 note: ссылки на тех. дизайн и макеты лежат в блоке кода
 ---
 ### Контекст и цель
@@ -18,6 +17,6 @@ note: ссылки на тех. дизайн и макеты лежат в бл�
 ### Ссылки
 
 ```
-TD: https://wiki.example.com/td-pledge-end-date
-Figma: https://figma.example.com/file/pledge-confirmation
+TD: https://wiki.example.com/td-commitment-end-date
+Figma: https://figma.example.com/file/commitment-confirmation
 ```

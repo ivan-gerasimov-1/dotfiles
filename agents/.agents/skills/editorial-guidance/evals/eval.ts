@@ -1,23 +1,26 @@
 /**
- * Runs an editorial-guidance report on each fixture and scores each rule.
+ * Runs an editorial-guidance report on each fixture and scores it.
  * The report runs in the default single flow with `--dry-run`, so one agent
  * checks each fixture and nothing is edited.
  *
- * Usage: node evals/eval.ts [RULE | RULE/NAME ...] [--runs N] [--jobs N] [--model NAME]
+ * Usage: node evals/eval.ts [FOLDER | FOLDER/NAME ...] [--runs N] [--jobs N] [--model NAME]
  *
- * A fixture lives in fixtures/<RULE>/<name>.md. Its frontmatter says whether
- * the rule must fire (`expect: flag`) or stay silent (`expect: pass`).
- * An optional `not: PA001, SU001` lists rules that must stay silent too, which
- * checks that an overlapping finding goes to its owner.
- * An optional `selectors: slop CA002` replaces the default `recommended` preset,
- * for a fixture whose competing rule is not in that preset.
+ * A rule fixture lives in fixtures/<RULE>/<name>.md and runs with that rule
+ * alone. Its frontmatter says whether the rule must fire (`expect: flag`) or
+ * stay silent (`expect: pass`).
+ *
+ * A preset fixture lives in fixtures/<preset>/<name>.md and runs with the whole
+ * preset, so its rules compete for a finding as they do in a real call.
+ * `fire: GR001` lists rules that must fire, `silent: GR004` rules that must stay
+ * silent, which checks that an overlapping finding goes to its owner.
  * Only these rules are scored. Other rules a fixture fires are listed as extra,
- * and a fired `not` rule is marked with `!`.
+ * and a fired silent rule is marked with `!`.
  * Raw replies go to results/<timestamp>/.
  */
 
 import { execFile } from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -33,12 +36,16 @@ import { parseArgs } from "node:util";
 type Expect = "flag" | "pass";
 
 type Fixture = {
-  rule: string;
+  /** A rule ID for a rule fixture, a preset ID for a preset fixture. */
+  folder: string;
   name: string;
-  expect: Expect;
+  /** Set for a rule fixture only. */
+  expect: Expect | null;
+  /** Rules that must fire on this fixture. */
+  fire: string[];
   /** Rules that must not fire on this fixture. */
-  not: string[];
-  /** Presets and rule IDs passed to the skill. */
+  silent: string[];
+  /** The preset or the rule ID passed to the skill. */
   selectors: string[];
   note: string;
   body: string;
@@ -79,18 +86,25 @@ type RuleStats = {
   flaky: number;
 };
 
+type PresetStats = {
+  runs: Tally;
+  flaky: number;
+};
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, "fixtures");
+const PRESETS = join(HERE, "..", "references", "presets");
 const RESULTS = join(HERE, "results");
 
-const DEFAULT_SELECTORS = ["recommended"];
+const RULE_ID = /^[A-Z]{2}\d{3}$/;
+const PRESET_ID = /^[a-z]+$/;
 
 const SYSTEM_PROMPT =
   "Eval run. End the reply with one line: " +
   "FOUND: <comma-separated rule IDs of your findings, or none>";
 
-function parseFixture(rule: string, file: string): Fixture {
-  const path = join(FIXTURES, rule, file);
+function parseFixture(folder: string, file: string): Fixture {
+  const path = join(FIXTURES, folder, file);
   const text = readFileSync(path, "utf8");
 
   const match = text.match(/^---\n([\s\S]*?)\n---\n\n?([\s\S]*)$/);
@@ -100,39 +114,77 @@ function parseFixture(rule: string, file: string): Fixture {
 
   const [, frontmatter = "", body = ""] = match;
   const meta = parseFrontmatter(frontmatter);
+  const fixture = {
+    folder,
+    name: file.replace(/\.md$/, ""),
+    note: meta.get("note") ?? "",
+    body: body.trim(),
+  };
 
-  const expect = meta.get("expect");
-  if (expect !== "flag" && expect !== "pass") {
-    throw new Error(`${path}: expect must be flag or pass`);
+  if (RULE_ID.test(folder)) {
+    const stray = ["not", "selectors", "fire", "silent"].find((key) => meta.has(key));
+    if (stray !== undefined) {
+      throw new Error(
+        `${path}: a rule fixture runs its rule alone and takes no ${stray}, ` +
+          "an overlap of rules goes to a preset fixture in fixtures/<preset>/",
+      );
+    }
+
+    const expect = meta.get("expect");
+    if (expect !== "flag" && expect !== "pass") {
+      throw new Error(`${path}: expect must be flag or pass`);
+    }
+
+    return {
+      ...fixture,
+      expect,
+      fire: expect === "flag" ? [folder] : [],
+      silent: expect === "pass" ? [folder] : [],
+      selectors: [folder],
+    };
   }
 
-  const not = (meta.get("not") ?? "")
+  if (PRESET_ID.test(folder)) {
+    const stray = ["expect", "not", "selectors"].find((key) => meta.has(key));
+    if (stray !== undefined) {
+      throw new Error(`${path}: a preset fixture lists its rules in fire and silent, not in ${stray}`);
+    }
+
+    if (!existsSync(join(PRESETS, `${folder}.md`))) {
+      throw new Error(`${path}: no preset ${folder}`);
+    }
+
+    const fire = parseRuleIds(path, "fire", meta.get("fire"));
+    const silent = parseRuleIds(path, "silent", meta.get("silent"));
+
+    if (fire.length + silent.length === 0) {
+      throw new Error(`${path}: a preset fixture needs fire or silent`);
+    }
+
+    const both = fire.find((id) => silent.includes(id));
+    if (both !== undefined) {
+      throw new Error(`${path}: ${both} is both in fire and in silent`);
+    }
+
+    return { ...fixture, expect: null, fire, silent, selectors: [folder] };
+  }
+
+  throw new Error(`${path}: a fixture folder is named by a rule ID or a preset ID`);
+}
+
+/** Reads a comma-separated list of rule IDs from one frontmatter key. */
+function parseRuleIds(path: string, key: string, value: string | undefined): string[] {
+  const ids = (value ?? "")
     .split(",")
     .map((id) => id.trim())
     .filter((id) => id !== "");
 
-  const badId = not.find((id) => !/^[A-Z]{2}\d{3}$/.test(id));
+  const badId = ids.find((id) => !RULE_ID.test(id));
   if (badId !== undefined) {
-    throw new Error(`${path}: not has a bad rule ID ${badId}`);
+    throw new Error(`${path}: ${key} has a bad rule ID ${badId}`);
   }
 
-  const listed = (meta.get("selectors") ?? "").split(/\s+/).filter((word) => word !== "");
-  const selectors = listed.length > 0 ? listed : DEFAULT_SELECTORS;
-
-  const badSelector = selectors.find((word) => !/^([A-Z]{2}\d{3}|[a-z]+)$/.test(word));
-  if (badSelector !== undefined) {
-    throw new Error(`${path}: selectors has a bad preset or rule ID ${badSelector}`);
-  }
-
-  return {
-    rule,
-    name: file.replace(/\.md$/, ""),
-    expect,
-    not,
-    selectors,
-    note: meta.get("note") ?? "",
-    body: body.trim(),
-  };
+  return ids;
 }
 
 /** Reads flat `key: value` lines, which is all a fixture needs. */
@@ -149,15 +201,18 @@ function parseFrontmatter(text: string): Map<string, string> {
   return meta;
 }
 
-/** Selects by rule folder (`GR003`) or by one fixture (`GR003/flag-dash`). No selectors means all. */
+/**
+ * Selects by folder (`GR003`, `recommended`) or by one fixture (`GR003/flag-dash`).
+ * No selectors means all.
+ */
 function loadFixtures(selectors: string[]): Fixture[] {
   const fixtures = readdirSync(FIXTURES)
     .sort()
-    .flatMap((rule) =>
-      readdirSync(join(FIXTURES, rule))
+    .flatMap((folder) =>
+      readdirSync(join(FIXTURES, folder))
         .filter((file) => file.endsWith(".md"))
         .sort()
-        .map((file) => parseFixture(rule, file)),
+        .map((file) => parseFixture(folder, file)),
     );
 
   if (selectors.length === 0) {
@@ -165,7 +220,7 @@ function loadFixtures(selectors: string[]): Fixture[] {
   }
 
   return fixtures.filter(
-    ({ rule, name }) => selectors.includes(rule) || selectors.includes(`${rule}/${name}`),
+    ({ folder, name }) => selectors.includes(folder) || selectors.includes(`${folder}/${name}`),
   );
 }
 
@@ -283,14 +338,17 @@ async function runAll(jobs: Job[], parallel: number, model: string | undefined):
   }
 }
 
+/** A run without a FOUND line fails, so a broken reply never counts as silence. */
 function scoreFixture(fixture: Fixture, runs: Run[]): Row {
-  const shouldFire = fixture.expect === "flag";
+  const ok = runs.filter(({ found }) => {
+    if (found === null) {
+      return false;
+    }
 
-  const ok = runs.filter((run) => {
-    const fired = run.found?.has(fixture.rule) ?? false;
-    const misfiled = fixture.not.some((id) => run.found?.has(id) ?? false);
+    const fired = fixture.fire.every((id) => found.has(id));
+    const misfiled = fixture.silent.some((id) => found.has(id));
 
-    return fired === shouldFire && !misfiled;
+    return fired && !misfiled;
   }).length;
 
   const broken = runs.filter((run) => run.found === null).length;
@@ -298,20 +356,24 @@ function scoreFixture(fixture: Fixture, runs: Run[]): Row {
 
   const allFound = new Set(runs.flatMap((run) => [...(run.found ?? [])]));
   const extra = [...allFound]
-    .filter((id) => id !== fixture.rule)
+    .filter((id) => !fixture.fire.includes(id))
     .sort()
-    .map((id) => (fixture.not.includes(id) ? `${id}!` : id));
+    .map((id) => (fixture.silent.includes(id) ? `${id}!` : id));
 
   return { fixture, ok, total: runs.length, broken, denied, extra };
 }
 
+/** Rule fixtures only: a preset fixture scores how rules share findings, not one rule. */
 function statsByRule(rows: Row[]): Map<string, RuleStats> {
   const stats = new Map<string, RuleStats>();
 
   for (const row of rows) {
-    const { rule, expect } = row.fixture;
+    const { folder, expect } = row.fixture;
+    if (expect === null) {
+      continue;
+    }
 
-    const entry = stats.get(rule) ?? {
+    const entry = stats.get(folder) ?? {
       flag: { ok: 0, total: 0 },
       pass: { ok: 0, total: 0 },
       flaky: 0,
@@ -324,17 +386,53 @@ function statsByRule(rows: Row[]): Map<string, RuleStats> {
       entry.flaky++;
     }
 
-    stats.set(rule, entry);
+    stats.set(folder, entry);
   }
 
   return stats;
 }
 
-function printFixtures(rows: Row[]) {
-  console.log(`${"fixture".padEnd(32)} ${"expect".padEnd(6)} ${"ok".padStart(5)}  extra`);
+function statsByPreset(rows: Row[]): Map<string, PresetStats> {
+  const stats = new Map<string, PresetStats>();
 
   for (const row of rows) {
-    const key = `${row.fixture.rule}/${row.fixture.name}`;
+    const { folder, expect } = row.fixture;
+    if (expect !== null) {
+      continue;
+    }
+
+    const entry = stats.get(folder) ?? { runs: { ok: 0, total: 0 }, flaky: 0 };
+
+    entry.runs.ok += row.ok;
+    entry.runs.total += row.total;
+
+    if (row.ok > 0 && row.ok < row.total) {
+      entry.flaky++;
+    }
+
+    stats.set(folder, entry);
+  }
+
+  return stats;
+}
+
+/** `flag` or `pass` for a rule fixture, `+GR001 -GR004` for a preset fixture. */
+function expectation(fixture: Fixture): string {
+  if (fixture.expect !== null) {
+    return fixture.expect;
+  }
+
+  return [...fixture.fire.map((id) => `+${id}`), ...fixture.silent.map((id) => `-${id}`)].join(" ");
+}
+
+function printFixtures(rows: Row[]) {
+  const key = (fixture: Fixture) => `${fixture.folder}/${fixture.name}`;
+  const keyWidth = Math.max(32, ...rows.map((row) => key(row.fixture).length));
+  const width = Math.max(6, ...rows.map((row) => expectation(row.fixture).length));
+
+  console.log(`${"fixture".padEnd(keyWidth)} ${"expect".padEnd(width)} ${"ok".padStart(5)}  extra`);
+
+  for (const row of rows) {
     const score = `${String(row.ok).padStart(2)}/${String(row.total).padEnd(2)}`;
 
     let tail = row.extra.join(", ");
@@ -345,7 +443,7 @@ function printFixtures(rows: Row[]) {
       tail += `  [${row.denied} denied]`;
     }
 
-    console.log(`${key.padEnd(32)} ${row.fixture.expect.padEnd(6)} ${score}  ${tail}`);
+    console.log(`${key(row.fixture).padEnd(keyWidth)} ${expectation(row.fixture).padEnd(width)} ${score}  ${tail}`);
   }
 }
 
@@ -363,6 +461,24 @@ function printRules(stats: Map<string, RuleStats>) {
     const flaky = String(entry.flaky).padStart(6);
 
     console.log(`${rule.padEnd(6)} ${recall} ${silent} ${flaky}`);
+  }
+}
+
+function printPresets(stats: Map<string, PresetStats>) {
+  if (stats.size === 0) {
+    return;
+  }
+
+  console.log();
+  console.log(`${"preset".padEnd(12)} ${"ok".padStart(8)} ${"flaky".padStart(6)}`);
+
+  const sorted = [...stats].sort(([a], [b]) => a.localeCompare(b));
+
+  for (const [preset, entry] of sorted) {
+    const ok = `${entry.runs.ok}/${entry.runs.total}`.padStart(8);
+    const flaky = String(entry.flaky).padStart(6);
+
+    console.log(`${preset.padEnd(12)} ${ok} ${flaky}`);
   }
 }
 
@@ -410,7 +526,7 @@ async function main() {
       return;
     }
 
-    const file = `${fixture.rule}-${fixture.name}-${attempt + 1}.md`;
+    const file = `${fixture.folder}-${fixture.name}-${attempt + 1}.md`;
     const denials = run.denied.map((line) => `- ${line}`).join("\n");
     const text = denials ? `${run.reply}\n\n---\nDenied:\n${denials}\n` : run.reply;
     writeFileSync(join(outDir, file), text);
@@ -422,6 +538,7 @@ async function main() {
 
   printFixtures(rows);
   printRules(statsByRule(rows));
+  printPresets(statsByPreset(rows));
 
   const cost = runs.reduce((sum, run) => sum + run.cost, 0);
   const turns = runs.reduce((sum, run) => sum + run.turns, 0);
