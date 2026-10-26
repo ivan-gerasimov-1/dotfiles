@@ -5,6 +5,8 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
+# Not in the XDG spec
+export XDG_BIN_HOME="$HOME/.local/bin"
 
 export EDITOR="nvim"
 
@@ -17,6 +19,7 @@ export LESSHISTFILE="$XDG_STATE_HOME/less/.lesshst"
 # Homebrew (macOS only)
 if [[ $OSTYPE == darwin* ]]; then
   export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+  export HOMEBREW_UPGRADE_GREEDY_CASKS="orbstack 1password"
 fi
 
 # Starship
@@ -43,9 +46,8 @@ export PI_CODING_AGENT_SESSION_DIR="$XDG_STATE_HOME/pi/sessions"
 # Codex
 export CODEX_HOME="$XDG_STATE_HOME/codex"
 
-# GO
-export GOPATH="$XDG_DATA_HOME/go"
-path=("$GOPATH/bin" $path)
+# Local binaries
+path=("$XDG_BIN_HOME" $path)
 
 # PATH
 export PATH

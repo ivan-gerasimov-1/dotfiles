@@ -35,6 +35,9 @@ eval "$(fnm env --use-on-cd --version-file-strategy=recursive --log-level=error)
 # User config
 source "$XDG_CONFIG_HOME/zsh/package-manager.zsh"
 
+# Plugins
+for f in "$XDG_CONFIG_HOME"/zsh/plugins/*/*.zsh(DN); do source "$f"; done
+
 ## Aliases
 
 ### Brew
