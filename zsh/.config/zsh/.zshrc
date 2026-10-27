@@ -46,6 +46,10 @@ alias brew:up="brew:update && brew upgrade -y && brew:cleanup"
 alias brew:cleanup="brew autoremove && brew cleanup --prune=all"
 alias brew:why="brew uses --installed --recursive"
 
+### Claude Code
+alias cc="claude"
+alias сс="claude"
+
 ### PI
 alias pi='pi --tools read,bash,edit,write,grep,find,ls,question --offline'
 alias pir='pi --tools read,grep,find,ls --offline'

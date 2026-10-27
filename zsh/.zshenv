@@ -43,6 +43,9 @@ export TMUX_CONF="$XDG_CONFIG_HOME/tmux/tmux.conf"
 export PI_CODING_AGENT_DIR="$XDG_CONFIG_HOME/pi"
 export PI_CODING_AGENT_SESSION_DIR="$XDG_STATE_HOME/pi/sessions"
 
+# Claude Code
+export CLAUDE_CONFIG_DIR="$XDG_STATE_HOME/claude"
+
 # Codex
 export CODEX_HOME="$XDG_STATE_HOME/codex"
 
