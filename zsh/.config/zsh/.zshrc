@@ -57,6 +57,9 @@ alias pir='pi --tools read,grep,find,ls --offline'
 ### Lazygit
 alias lg="lazygit"
 
+### Lazydocker
+alias ld="lazydocker"
+
 ### nvim
 alias vi="nvim"
 alias vim="nvim"
