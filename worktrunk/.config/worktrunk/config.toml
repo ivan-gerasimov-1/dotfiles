@@ -1,0 +1,3 @@
+# Worktrunk base config. Full reference with defaults: `wt config create`.
+
+worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"

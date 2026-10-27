@@ -46,6 +46,10 @@ export PI_CODING_AGENT_SESSION_DIR="$XDG_STATE_HOME/pi/sessions"
 # Codex
 export CODEX_HOME="$XDG_STATE_HOME/codex"
 
+# Worktrunk
+export WORKTRUNK_SYSTEM_CONFIG_PATH="$XDG_CONFIG_HOME/worktrunk/config.toml"
+export WORKTRUNK_CONFIG_PATH="$XDG_CONFIG_HOME/worktrunk/config.local.toml"
+
 # Local binaries
 path=("$XDG_BIN_HOME" $path)
 
