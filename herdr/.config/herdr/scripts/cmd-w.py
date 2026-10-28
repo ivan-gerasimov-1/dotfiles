@@ -16,7 +16,7 @@ from typing import Any
 
 CONFIRM_SECONDS = 2
 STATE_FILE = os.path.join(tempfile.gettempdir(), f"herdr-cmd-w-{os.getuid()}.json")
-HERDR = "/opt/homebrew/bin/herdr"
+HERDR = os.environ.get("HERDR_BIN_PATH") or "/opt/homebrew/bin/herdr"
 
 
 def herdr(*args: str) -> dict[str, Any]:
@@ -96,17 +96,17 @@ def run_after_warning(
     warn_once(target, title, f"Press Cmd+W again within {CONFIRM_SECONDS}s to {action}.")
 
 
-def replace_pane(current_pane: dict[str, Any]) -> None:
+def replace_pane(pane_id: str) -> None:
     """Replace the last pane with a fresh shell, preserving cwd.
 
     Herdr has no native pane reset command. Creating a fresh split, focusing it,
     then closing the old pane gives clean scrollback and avoids shell/job-control
     messages left by sending `exec $SHELL` into the terminal.
     """
-    pane_id = current_pane["pane_id"]
+    pane = herdr("pane", "get", pane_id)["pane"]
     cwd = (
-        current_pane.get("foreground_cwd")
-        or current_pane.get("cwd")
+        pane.get("foreground_cwd")
+        or pane.get("cwd")
         or os.path.expanduser("~")
     )
 
@@ -126,23 +126,26 @@ def replace_pane(current_pane: dict[str, Any]) -> None:
     subprocess.check_call((HERDR, "pane", "close", pane_id))
 
 
-def main() -> None:
+def active_ids() -> tuple[str, str, str]:
+    """Pane, tab and workspace ids of the focused pane.
+
+    Herdr passes them to custom commands as HERDR_ACTIVE_*; fall back to
+    `pane current` when the script runs outside a key binding.
+    """
+    pane_id = os.environ.get("HERDR_ACTIVE_PANE_ID")
+    tab_id = os.environ.get("HERDR_ACTIVE_TAB_ID")
+    workspace_id = os.environ.get("HERDR_ACTIVE_WORKSPACE_ID")
+    if pane_id and tab_id and workspace_id:
+        return pane_id, tab_id, workspace_id
+
     current = herdr("pane", "current")["pane"]
-    pane_id = current["pane_id"]
-    tab_id = current["tab_id"]
-    workspace_id = current["workspace_id"]
+    return current["pane_id"], current["tab_id"], current["workspace_id"]
 
-    tabs = herdr("tab", "list")["tabs"]
-    current_tab = next((tab for tab in tabs if tab.get("tab_id") == tab_id), None)
-    if current_tab is None:
-        notify("Cmd+W failed", "Could not find the current tab. Nothing was closed.")
-        return
 
-    # Prefer tab.pane_count over counting pane.list manually. In key-handler
-    # context pane.list can be scoped/stale in some Herdr builds, which made
-    # every pane look like the only pane in its tab. Fun little footgun.
-    pane_count = current_tab.get("pane_count", 1)
-    if pane_count > 1:
+def main() -> None:
+    pane_id, tab_id, workspace_id = active_ids()
+
+    if herdr("tab", "get", tab_id)["tab"]["pane_count"] > 1:
         run_after_warning(
             target=f"pane:{pane_id}",
             busy=pane_busy(pane_id),
@@ -152,32 +155,7 @@ def main() -> None:
         )
         return
 
-    workspaces = herdr("workspace", "list")["workspaces"]
-    current_workspace = next(
-        (
-            workspace
-            for workspace in workspaces
-            if workspace.get("workspace_id") == workspace_id
-        ),
-        None,
-    )
-
-    # Be defensive here. Depending on Herdr/context, either workspace.list or
-    # tab.list can be narrower than expected. If both are present, use the
-    # larger count so we do not mistake a normal single-pane tab for the last
-    # tab and reset the pane instead of closing the tab.
-    workspace_tabs = [tab for tab in tabs if tab.get("workspace_id") == workspace_id]
-    listed_tab_count = len(workspace_tabs) or len(tabs)
-    workspace_tab_count = current_workspace.get("tab_count", 0) if current_workspace else 0
-    tab_count = max(workspace_tab_count, listed_tab_count, 1)
-
-    if current_workspace is None and listed_tab_count <= 1:
-        notify(
-            "Cmd+W failed",
-            "Could not confirm this is the last tab. Nothing was closed.",
-        )
-        return
-    if tab_count > 1:
+    if herdr("workspace", "get", workspace_id)["workspace"]["tab_count"] > 1:
         run_after_warning(
             target=f"tab:{tab_id}",
             busy=pane_busy(pane_id),
@@ -198,7 +176,7 @@ def main() -> None:
         )
         return
 
-    replace_pane(current)
+    replace_pane(pane_id)
     notify("Not closing last pane", "Created a fresh pane instead.")
 
 
