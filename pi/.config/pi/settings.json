@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.83.0",
+  "lastChangelogVersion": "0.99.1",
   "compaction": {
     "enabled": true,
     "reserveTokens": 72000,
@@ -16,7 +16,7 @@
   "theme": "dark",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
-  "defaultThinkingLevel": "low",
+  "defaultThinkingLevel": "medium",
   "enabledModels": [
     "openai-codex/gpt-5.6-sol",
     "openai-codex/gpt-5.6-luna"
@@ -29,5 +29,6 @@
     "anthropicExtraUsage": false
   },
   "doubleEscapeAction": "none",
-  "defaultProjectTrust": "always"
+  "defaultProjectTrust": "always",
+  "deviceId": "53acac39-5b27-4c95-a892-021e546275db"
 }
