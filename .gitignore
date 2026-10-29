@@ -25,3 +25,6 @@
 **/herdr/.plugins.lock
 **/herdr/.config/herdr/herdr.sock.agent
 **/herdr/.config/herdr/session-snapshots/**
+
+!codex/.local/state/codex/config.toml
+
