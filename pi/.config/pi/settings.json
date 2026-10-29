@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.99.1",
+  "lastChangelogVersion": "1.4.0",
   "compaction": {
     "enabled": true,
     "reserveTokens": 72000,
@@ -18,10 +18,10 @@
   "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
-    "openai-codex/gpt-6-astra",
-    "openai-codex/gpt-6-luna",
-    "openai-codex/gpt-6-sol",
-    "openai-codex/gpt-6.1-sol"
+    "openai/gpt-6.1-sol",
+    "openai/gpt-6.1-terra",
+    "openai/gpt-6-luna",
+    "openai/gpt-6-astra"
   ],
   "hideThinkingBlock": true,
   "showHardwareCursor": false,
