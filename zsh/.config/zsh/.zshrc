@@ -50,10 +50,6 @@ alias brew:why="brew uses --installed --recursive"
 alias cc="claude"
 alias сс="claude"
 
-### PI
-alias pi='pi --tools read,bash,edit,write,grep,find,ls,question --offline'
-alias pir='pi --tools read,grep,find,ls --offline'
-
 ### Lazygit
 alias lg="lazygit"
 
