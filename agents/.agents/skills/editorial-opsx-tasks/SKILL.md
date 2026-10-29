@@ -1,6 +1,12 @@
 ---
 name: editorial-opsx-tasks
-description: Rewrite the tasks.md of an OpenSpec change so each task reads at a glance and an implementing agent can check it is done: named tasks, no code in prose, a "Done when" check per task, code pointers in a block, spec and design links. Keeps the checkboxes OpenSpec tracks. Use when asked to clean up, restructure or improve readability of an OpenSpec tasks.md, or says "editorial for tasks.md" or "opsx tasks editorial".
+description: >-
+  Rewrite the tasks.md of an OpenSpec change so each task reads at a glance
+  and an implementing agent can check it is done: named tasks, no code in
+  prose, a "Done when" check per task, code pointers in a block, spec and
+  design links. Keeps the checkboxes OpenSpec tracks. Use when asked to
+  clean up, restructure or improve readability of an OpenSpec tasks.md,
+  or says "editorial for tasks.md" or "opsx tasks editorial".
 allowed-tools: Bash(openspec list:*), Bash(openspec validate:*), Bash(openspec instructions:*), Bash(git diff:*), Bash(git status:*)
 ---
 
