@@ -7,16 +7,9 @@ confirm-close-surface = always
 notify-on-command-finish = unfocused
 quit-after-last-window-closed = true
 
-background-blur = true
-background-opacity = 0.9625
 font-family = Iosevka Term
 font-size = 14
 fullscreen = non-native
-macos-titlebar-style = tabs
-macos-window-buttons = hidden
-macos-window-shadow = false
-window-padding-x = 0
-window-padding-y = 0
 
 keybind = ctrl+1=unbind
 keybind = ctrl+2=unbind
