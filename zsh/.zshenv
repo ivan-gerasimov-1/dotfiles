@@ -15,6 +15,9 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
 # less
 export LESSHISTFILE="$XDG_STATE_HOME/less/.lesshst"
+if [[ ! -d $XDG_STATE_HOME/less ]]; then
+  (umask 077; mkdir -p -- "$XDG_STATE_HOME/less")
+fi
 
 # Homebrew (macOS only)
 if [[ $OSTYPE == darwin* ]]; then
@@ -43,8 +46,11 @@ export PI_CODING_AGENT_SESSION_DIR="$XDG_STATE_HOME/pi/sessions"
 # Claude Code
 export CLAUDE_CONFIG_DIR="$XDG_STATE_HOME/claude"
 
-# Codex
+# Codex requires its home directory to exist before startup.
 export CODEX_HOME="$XDG_STATE_HOME/codex"
+if [[ ! -d $CODEX_HOME ]]; then
+  (umask 077; mkdir -p -- "$CODEX_HOME")
+fi
 
 # Worktrunk
 export WORKTRUNK_SYSTEM_CONFIG_PATH="$XDG_CONFIG_HOME/worktrunk/config.toml"
