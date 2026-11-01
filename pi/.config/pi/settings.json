@@ -1,36 +1,20 @@
 {
   "lastChangelogVersion": "1.4.0",
-  "compaction": {
-    "enabled": true,
-    "reserveTokens": 72000,
-    "keepRecentTokens": 20000
-  },
-  "terminal": {
-    "showTerminalProgress": true,
-    "imageWidthCells": 80
-  },
-  "transport": "auto",
-  "quietStartup": true,
-  "enableInstallTelemetry": false,
-  "treeFilterMode": "default",
-  "theme": "dark",
-  "defaultProvider": "openai-codex",
+  "deviceId": "e98f53d1-26e8-4f02-ab37-d456359a6064",
+  "defaultProvider": "openai",
   "defaultModel": "gpt-6.1-sol",
-  "defaultThinkingLevel": "medium",
   "enabledModels": [
     "openai/gpt-6.1-sol",
     "openai/gpt-6.1-terra",
-    "openai/gpt-6-luna",
-    "openai/gpt-6-astra"
+    "openai/gpt-6-luna"
   ],
-  "hideThinkingBlock": true,
-  "showHardwareCursor": false,
-  "enableSkillCommands": true,
+  "outputPad": 1,
+  "editorPaddingX": 1,
+  "transport": "websocket-cached",
+  "showCacheMissNotices": true,
   "collapseChangelog": true,
-  "warnings": {
-    "anthropicExtraUsage": false
-  },
-  "doubleEscapeAction": "none",
-  "defaultProjectTrust": "always",
-  "deviceId": "53acac39-5b27-4c95-a892-021e546275db"
+  "quietStartup": true,
+  "enableInstallTelemetry": false,
+  "defaultProjectTrust": "ask",
+  "theme": "system"
 }
