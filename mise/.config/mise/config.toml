@@ -1,0 +1,26 @@
+[settings]
+# Keep binaries available for running applications and manual rollback.
+upgrade.auto_prune = false
+
+[tools]
+"aqua:BurntSushi/ripgrep" = "latest"
+"aqua:Schniz/fnm" = "latest"
+"aqua:ajeetdsouza/zoxide" = "latest"
+"aqua:aristocratos/btop" = "latest"
+"aqua:caddyserver/caddy" = "latest"
+"aqua:cli/cli" = "latest"
+"aqua:dandavison/delta" = "latest"
+"aqua:earendil-works/pi" = "latest"
+"aqua:eza-community/eza" = "latest"
+"aqua:herdrdev/herdr" = "latest"
+"aqua:jesseduffield/lazygit" = "latest"
+"aqua:jqlang/jq" = "latest"
+"aqua:junegunn/fzf" = "latest"
+"aqua:max-sixty/worktrunk" = "latest"
+"aqua:neovim/neovim" = "latest"
+"aqua:openai/codex" = "latest"
+"aqua:sharkdp/bat" = "latest"
+"aqua:sharkdp/fd" = "latest"
+"aqua:starship/starship" = "latest"
+"aqua:sxyazi/yazi" = "latest"
+"aqua:tree-sitter/tree-sitter" = "latest"
