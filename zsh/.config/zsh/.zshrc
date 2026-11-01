@@ -17,6 +17,14 @@ setopt HIST_VERIFY
 
 # 3rd party tools config
 
+# fnm owns Node.js; mise owns the other CLI tools.
+eval "$(fnm env --use-on-cd --version-file-strategy=recursive --log-level=error)"
+
+# mise: activate before initializing the tools it manages.
+if (( $+commands[mise] )); then
+  eval "$(mise activate zsh)"
+fi
+
 # fzf
 source <(fzf --zsh)
 
@@ -28,9 +36,6 @@ eval "$(starship init zsh)"
 
 # Worktrunk
 eval "$(wt config shell init zsh)"
-
-# fnm
-eval "$(fnm env --use-on-cd --version-file-strategy=recursive --log-level=error)"
 
 # User config
 source "$XDG_CONFIG_HOME/zsh/package-manager.zsh"

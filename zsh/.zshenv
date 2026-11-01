@@ -36,9 +36,6 @@ else
 fi
 path=("$PNPM_HOME/bin" $path)
 
-# tmux
-export TMUX_CONF="$XDG_CONFIG_HOME/tmux/tmux.conf"
-
 # PI Coding Agent
 export PI_CODING_AGENT_DIR="$XDG_CONFIG_HOME/pi"
 export PI_CODING_AGENT_SESSION_DIR="$XDG_STATE_HOME/pi/sessions"
@@ -55,6 +52,11 @@ export WORKTRUNK_CONFIG_PATH="$XDG_CONFIG_HOME/worktrunk/config.local.toml"
 
 # Local binaries
 path=("$XDG_BIN_HOME" $path)
+
+# mise tools also need to be visible to non-interactive shells.
+if [[ -d "$XDG_DATA_HOME/mise/shims" ]]; then
+  path=("$XDG_DATA_HOME/mise/shims" $path)
+fi
 
 # PATH
 export PATH
